@@ -3,6 +3,116 @@ maincode = function()
     var initialized = false;
     var initializing = false;
     var video = null;
+    var subtitles = null;
+    var lastShownSubIdx = -1;
+    var subDiv = null;
+    var inDialog = false;
+    var syncOffset = 0;
+    var timeScale = 1.0;
+    var messageDiv = null;
+    var messageTimer = null;
+
+    var attachSubDiv = function()
+    {
+        var elem = document.body;
+        //if (video != null)
+        //    elem = video;
+
+        if (subDiv.parent !== elem)
+        {
+            if (subDiv.parent)
+                subDiv.parent.removeChild(subDiv);
+            elem.appendChild(subDiv);
+            subDiv.style.color = "red";
+            subDiv.style.fontSize = "20px";
+            subDiv.style.position = "absolute";
+            subDiv.style.top = "10px";
+            subDiv.style.left = "10px";
+            subDiv.innerText = "NOPE";
+        }
+    }
+
+    var showMessage = function(message)
+    {
+        if (messageTimer)
+        {
+            clearTimeout(messageTimer);
+            messageTimer = null;
+        }
+
+        messageDiv.innerText = message;
+        messageTimer = setTimeout(function()
+        {
+            messageTimer = null;
+            messageDiv.innerText = "";
+        }, 2000);
+    }
+
+    var syncAdjust = function(dt, absolute)
+    {
+        if (absolute)
+            syncOffset = dt;
+        else
+            syncOffset += dt;
+
+        showMessage("Sync offset: " + syncOffset.toFixed(3));
+    }   
+
+    var getAbsoluteSync = function()
+    {
+        inDialog = true;
+        vex.dialog.prompt(
+        {
+            message: 'Enter sub sync offset (in seconds):',
+            placeholder: '0.0',
+            callback: function(value) 
+            {
+                inDialog = false;
+                if (value !== false)
+                {
+                    try
+                    {
+                        var offset = parseFloat(value);
+                        syncAdjust(offset, true);
+                    }
+                    catch(e)
+                    {
+                    }
+                }
+            }
+        });
+    }
+
+    var getTimeScale = function()
+    {
+        inDialog = true;
+        vex.dialog.prompt(
+        {
+            message: 'Enter time rescale value:',
+            placeholder: '1.0',
+            callback: function(value) 
+            {
+                inDialog = false;
+                if (value !== false)
+                {
+                    try
+                    {
+                        var scale = eval(value);
+                        var invScale = 1.0/scale;
+
+                        if (scale > 0 && invScale > 0)
+                        {
+                            timeScale = scale;
+                            showMessage("Sub timing will be rescaled by: " + timeScale.toFixed(3));
+                        }
+                    }
+                    catch(e)
+                    {
+                    }
+                }
+            }
+        });
+    }
 
     var textToHTML = function(text)
     {
@@ -19,9 +129,29 @@ maincode = function()
     {
         if (!video)
             return;
+        if (!subtitles)
+            return;
 
-        var currentTime = video.currentTime;
-        console.log(currentTime);
+        var currentTime = video.currentTime/timeScale + syncOffset;
+        var num = subtitles.length;
+
+        for (var i = 0 ; i < num ; i++)
+        {
+            var obj = subtitles[i];
+            if (obj)
+            {
+                if (obj.subStart < currentTime && currentTime < obj.subEnd)
+                {
+                    if (lastShownSubIdx != i)
+                    {
+                        lastShownSubIdx = i;
+                        subDiv.innerText = obj.subText;
+                    }
+                    return;
+                }
+            }
+        }
+        subDiv.innerText = "STILL NOPE";
     }
 
     var generalOpenDlg = null;
@@ -44,28 +174,40 @@ maincode = function()
     }
     var onSRTDataLoaded = function(srt)
     {
-        console.log("Loaded data");
+        console.log("Loaded data:");
+        console.log(srt);
         //console.log(srtData);
         // From http://v2v.cc/~j/jquery.srt/jquery.srt.js
-        srt = srt.replace(/\r\n|\r|\n/g, '\n')
-            
-        var subtitles = [];
+        srt = srt.replace(/\r\n|\r|\n/g, '\n');
+        subtitles = [];
+
         srt = strip(srt);
         var srt_ = srt.split('\n\n');
-        for(s in srt_) {
-            st = srt_[s].split('\n');
-            if(st.length >=2) {
-              n = st[0];
-              i = strip(st[1].split(' --> ')[0]);
-              o = strip(st[1].split(' --> ')[1]);
-              t = st[2];
-              if(st.length > 2) {
-                for(j=3; j<st.length;j++)
-                  t += '\n'+st[j];
-              }
-              is = toSeconds(i);
-              os = toSeconds(o);
-              subtitles[n] = { subStart:is, subEnd: os, subText: t};
+        for(s in srt_) 
+        {
+            try
+            {
+                st = srt_[s].split('\n');
+                if(st.length >= 2) 
+                {
+                    n = parseInt(st[0]);
+                    i = strip(st[1].split(' --> ')[0]);
+                    o = strip(st[1].split(' --> ')[1]);
+                    t = st[2];
+                    if(st.length > 2) 
+                    {
+                        for(j=3; j<st.length;j++)
+                        t += '\n'+st[j];
+                    }
+                    is = toSeconds(i);
+                    os = toSeconds(o);
+                    subtitles[n] = { subStart:is, subEnd: os, subText: t};
+                }
+            }
+            catch(e)
+            {
+                console.log("Error processing s = ", s);
+                console.log(e);
             }
         }
 
@@ -104,6 +246,7 @@ maincode = function()
     this.onSRTFileSelected = function(files)
     {
         vex.close(generalOpenDlg.data().vex.id);
+        inDialog = false;
 
         try
         {
@@ -137,6 +280,7 @@ maincode = function()
 
     var openSRTFile = function()
     {
+        inDialog = true;
         generalOpenDlg = vex.dialog.alert(
             {   contentCSS: { width: "60%" },
                 message: 'How do you want to load the file?' + 
@@ -165,14 +309,42 @@ maincode = function()
             if (oldKbdFunction)
                 oldKbdFunction(evt);
 
+            if (inDialog)
+                return;
+
             console.log("KeyCode = " + evt.keyCode);
             if (evt.keyCode == 79) // 'o'
                 openSRTFile();
+            
+            if (evt.keyCode == 109) // '-'
+                syncAdjust(-0.100, false);
+            
+            if (evt.keyCode == 107) // '+'
+                syncAdjust(+0.100, false);
+
+            if (evt.keyCode == 106) // '*'
+                getAbsoluteSync();
+
+            if (evt.keyCode == 111) // '/'
+                getTimeScale();
         }
         
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
+
+        subDiv = document.createElement("div");
+        attachSubDiv();
+       
+        messageDiv = document.createElement("div");
+        document.body.appendChild(messageDiv);
+        messageDiv.style.color = "red";
+        messageDiv.style.fontSize = "20px";
+        messageDiv.style.position = "absolute";
+        messageDiv.style.zIndex = 10;
+        messageDiv.style.top = "10px";
+        messageDiv.style.right = "10px";
+        messageDiv.innerText = "Delay: 0";
     }
 
     var init = function(_this)
