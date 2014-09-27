@@ -25,11 +25,51 @@ maincode = function()
     }
 
     var generalOpenDlg = null;
-
-    var onSRTDataLoaded = function(srtData)
+    
+    var strip = function(s) 
     {
-        console.log("Loaded data: ");
-        console.log(srtData);
+        return s.replace(/^\s+|\s+$/g,"");
+    }
+
+    function toSeconds(t) 
+    {
+        var s = 0.0;
+        if(t) 
+        {
+            var p = t.split(':');
+            for(var i=0;i<p.length;i++)
+                s = s * 60 + parseFloat(p[i].replace(',', '.'))
+        }
+        return s;
+    }
+    var onSRTDataLoaded = function(srt)
+    {
+        console.log("Loaded data");
+        //console.log(srtData);
+        // From http://v2v.cc/~j/jquery.srt/jquery.srt.js
+        srt = srt.replace(/\r\n|\r|\n/g, '\n')
+            
+        var subtitles = [];
+        srt = strip(srt);
+        var srt_ = srt.split('\n\n');
+        for(s in srt_) {
+            st = srt_[s].split('\n');
+            if(st.length >=2) {
+              n = st[0];
+              i = strip(st[1].split(' --> ')[0]);
+              o = strip(st[1].split(' --> ')[1]);
+              t = st[2];
+              if(st.length > 2) {
+                for(j=3; j<st.length;j++)
+                  t += '\n'+st[j];
+              }
+              is = toSeconds(i);
+              os = toSeconds(o);
+              subtitles[n] = { subStart:is, subEnd: os, subText: t};
+            }
+        }
+
+        console.log(subtitles);
     }
 
     var endsWith = function(s, end, caseInsensitive)
