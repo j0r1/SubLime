@@ -4,6 +4,17 @@ maincode = function()
     var initializing = false;
     var video = null;
 
+    var textToHTML = function(text)
+    {
+        return ((text || "") + "")  // make sure it's a string;
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\t/g, "    ")
+            .replace(/ /g, "&#8203;&nbsp;&#8203;")
+            .replace(/\r\n|\r|\n/g, "<br />");
+    }
+
     var onCheckSubtitleTimeout = function()
     {
         if (!video)
@@ -13,9 +24,83 @@ maincode = function()
         console.log(currentTime);
     }
 
+    var generalOpenDlg = null;
+
+    var onSRTDataLoaded = function(srtData)
+    {
+        console.log("Loaded data: ");
+        console.log(srtData);
+    }
+
+    var endsWith = function(s, end, caseInsensitive)
+    {
+        var l = s.length;
+
+        if (l < end.length)
+            return false;
+
+        var startIdx = l-end.length;
+
+        if (caseInsensitive)
+        {
+            if (s.substr(startIdx).toLowerCase() == end.toLowerCase())
+                return true;
+        }
+        else
+        {
+            if (s.substr(startIdx) == end)
+                return true;
+        }
+
+        return false;
+    }
+
+    var validateFileName = function(name)
+    {
+        if (!endsWith(name, ".srt", true))
+            throw "Filename does not end with '.srt'";
+    }
+
+    this.onSRTFileSelected = function(files)
+    {
+        vex.close(generalOpenDlg.data().vex.id);
+
+        try
+        {
+            if (files.length != 1)
+                throw "Precisely one file must be selected";
+
+
+            var file = files[0];
+
+            validateFileName(file.name);
+
+            var reader = new FileReader();
+            
+            reader.onload = function(e)
+            {
+                onSRTDataLoaded(e.target.result);
+            }
+            reader.onerror = function(s)
+            {
+                var msg = "Unknown error";
+                try { msg = "" + reader.error.message; } catch(e) { }
+                vex.dialog.alert("Error opening file:<br>" + textToHTML(msg));
+            }
+            reader.readAsText(file);
+        }
+        catch(err)
+        {
+            vex.dialog.alert("Error: " + textToHTML(err));
+        }
+    }
+
     var openSRTFile = function()
     {
-
+        generalOpenDlg = vex.dialog.alert(
+            {   contentCSS: { width: "60%" },
+                message: 'How do you want to load the file?' + 
+                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="maincode.instance.onSRTFileSelected(this.files)"></li></ul>'});
     }
 
     var resourcesInitialized = function(_this)
@@ -41,11 +126,13 @@ maincode = function()
                 oldKbdFunction(evt);
 
             console.log("KeyCode = " + evt.keyCode);
-            if (evt.keyCode == 79) 'o'
+            if (evt.keyCode == 79) // 'o'
                 openSRTFile();
         }
         
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
+        // Launch open file stuff
+        setTimeout(function() { openSRTFile(); }, 0 );
     }
 
     var init = function(_this)
