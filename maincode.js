@@ -15,21 +15,22 @@ maincode = function()
     var attachSubDiv = function()
     {
         var elem = document.body;
-        //if (video != null)
-        //    elem = video;
+        elem.appendChild(subDiv);
+        subDiv.style.color = "white";
+        //subDiv.style.border = "dotted 1px";
+        subDiv.style.fontSize = "28px";
+        subDiv.style.position = "absolute";
+        subDiv.style.bottom = "20px";
+        subDiv.style.left = "0px";
+        subDiv.style.right = "0px";
+        subDiv.style.width = "95%";
+        subDiv.style.margin = "auto";
+        subDiv.style.textAlign = "center";
+        subDiv.style.textShadow = "-2px 0 black, 0 2px black, 2px 0 black, 0 -2px black";
+        subDiv.style.fontFamily = "'Titillium Web', sans-serif";
+        subDiv.style.fontWeight = "bold";
 
-        if (subDiv.parent !== elem)
-        {
-            if (subDiv.parent)
-                subDiv.parent.removeChild(subDiv);
-            elem.appendChild(subDiv);
-            subDiv.style.color = "red";
-            subDiv.style.fontSize = "20px";
-            subDiv.style.position = "absolute";
-            subDiv.style.top = "10px";
-            subDiv.style.left = "10px";
-            subDiv.innerText = "NOPE";
-        }
+        subDiv.innerText = "";
     }
 
     var showMessage = function(message)
@@ -151,7 +152,7 @@ maincode = function()
                 }
             }
         }
-        subDiv.innerText = "STILL NOPE";
+        subDiv.innerText = "";
     }
 
     var generalOpenDlg = null;
@@ -303,8 +304,8 @@ maincode = function()
 
         setTimeout(function() { _this.run(); }, 0);
 
-        var oldKbdFunction = document.onkeyup;
-        document.onkeyup = function(evt)
+        var oldKbdFunction = document.onkeydown;
+        document.onkeydown = function(evt)
         {
             if (oldKbdFunction)
                 oldKbdFunction(evt);
@@ -338,13 +339,15 @@ maincode = function()
        
         messageDiv = document.createElement("div");
         document.body.appendChild(messageDiv);
-        messageDiv.style.color = "red";
+        messageDiv.style.color = "white";
         messageDiv.style.fontSize = "20px";
         messageDiv.style.position = "absolute";
-        messageDiv.style.zIndex = 10;
         messageDiv.style.top = "10px";
         messageDiv.style.right = "10px";
-        messageDiv.innerText = "Delay: 0";
+        messageDiv.style.textShadow = "-2px 0 black, 0 2px black, 2px 0 black, 0 -2px black";
+        messageDiv.style.fontFamily = "'Titillium Web', sans-serif";
+        messageDiv.style.fontWeight = "bold";
+        messageDiv.innerText = "";
     }
 
     var init = function(_this)
