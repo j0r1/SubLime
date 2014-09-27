@@ -1,35 +1,35 @@
 <!doctype html>
 <html>
     <head>
-        <script id="mybookmarklet">
+        <script id="suboverlaybookmarklet">
 
             function mainInitialized()
             {
                 console.log("Loaded main");
                 
-                window.initializedBookmarklet = true;
-                window.initializingBookmarklet = false;
-                setTimeout(function() { myBookmarkLet(); }, 0);
+                window.initializedSubOverlayBookmarklet = true;
+                window.initializingSubOverlayBookmarklet = false;
+                setTimeout(function() { subOverlayBookmarklet(); }, 0);
             }
 
             function initBookmarklet()
             {
                 var s = document.createElement("script");
                 
-                s.src = "https://pyservsite.appspot.com/maincode.js";
+                s.src = "http://localhost:8080/maincode.js";
                 s.onload = mainInitialized;
 
                 document.body.appendChild(s);
             }
 
-            function myBookmarkLet()
+            function subOverlayBookmarklet()
             {
-                if (window.initializingBookmarklet)
+                if (window.initializingSubOverlayBookmarklet)
                     return;
 
-                if (!window.initializedBookmarklet)
+                if (!window.initializedSubOverlayBookmarklet)
                 {
-                    window.initializingBookmarklet = true;
+                    window.initializingSubOverlayBookmarklet = true;
                     initBookmarklet();
                     return;
                 }
@@ -40,24 +40,19 @@
         <script>
             function run()
             {
-                var elem = document.getElementById("mybookmarklet");
+                var elem = document.getElementById("suboverlaybookmarklet");
                 var data = elem.innerHTML;
 
-                data = "void((function() { " + data + "\nmyBookmarkLet(); })())";
+                data = "void((function() { " + data + "\nsubOverlayBookmarklet(); })())";
 
-                //console.log(data);
-                
-                elem = document.getElementById("mylink");
+                elem = document.getElementById("bookmarkletlink");
                 elem.setAttribute("href", "javascript:" + encodeURIComponent(data));
-
-                elem = document.getElementById("mylink2");
-                elem.setAttribute("href", "javascript:" + encodeURIComponent(data.replace("https://pyservsite.appspot.com","http://localhost:8080")));
             }
         </script>
     </head>
     <body onload="run()">
-        <a href="javascript:void(0)" id="mylink">Bookmarklet</a>
-        <a href="javascript:void(0)" id="mylink2">Bookmarklet localhost</a> 
-        <img src="loading.png">
+        <a href="javascript:void(0)" id="bookmarkletlink">Bookmarklet (localhost)</a>
+        <video src="testvideo.webm" controls width="640"></video>
     </body>
 </html>
+
