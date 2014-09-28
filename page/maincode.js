@@ -582,7 +582,7 @@ maincode.run = function()
 {
     if (!maincode.instance)
     {
-        maincode.instance = new maincode("http://sub-lime.appspot.com");
+        maincode.instance = new maincode("https://sub-lime.appspot.com");
         console.log("Allocated new instance");
     }
 
