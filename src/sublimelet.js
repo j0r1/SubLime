@@ -1,4 +1,4 @@
-maincode = function(baseUrl)
+SubLimeLet = function(baseUrl)
 {
     var _this = this;
     var initialized = false;
@@ -383,7 +383,7 @@ maincode = function(baseUrl)
         generalOpenDlg = vex.dialog.alert(
             {   contentCSS: { width: "60%" },
                 message: 'How do you want to load the file?' + 
-                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="maincode.instance.onSRTFileSelected(this.files)"></li></ul>',
+                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="SubLimeLet.instance.onSRTFileSelected(this.files)"></li></ul>',
                 callback: function(data) 
                 {
                     console.log("Closed generalOpenDlg");
@@ -547,7 +547,7 @@ maincode = function(baseUrl)
             return;
         }
 
-        maincode.run();
+        SubLimeLet.run();
     }
 
     this.run = function()
@@ -576,15 +576,15 @@ maincode = function(baseUrl)
     }
 }
 
-maincode.instance = null;
+SubLimeLet.instance = null;
 
-maincode.run = function()
+SubLimeLet.run = function(baseUrl)
 {
-    if (!maincode.instance)
+    if (!SubLimeLet.instance)
     {
-        maincode.instance = new maincode("https://sub-lime.appspot.com");
+        SubLimeLet.instance = new SubLimeLet(baseUrl);
         console.log("Allocated new instance");
     }
 
-    maincode.instance.run();
+    SubLimeLet.instance.run();
 }
