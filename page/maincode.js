@@ -383,7 +383,13 @@ maincode = function(baseUrl)
         generalOpenDlg = vex.dialog.alert(
             {   contentCSS: { width: "60%" },
                 message: 'How do you want to load the file?' + 
-                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="maincode.instance.onSRTFileSelected(this.files)"></li></ul>'});
+                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="maincode.instance.onSRTFileSelected(this.files)"></li></ul>',
+                callback: function(data) 
+                {
+                    console.log("Closed generalOpenDlg");
+                    inDialog = false;
+                }
+            });
     }
 
     var resourcesInitialized = function()
@@ -396,6 +402,7 @@ maincode = function(baseUrl)
 
         vex.defaultOptions.className = 'vex-theme-wireframe';
 //        vex.defaultOptions.className = 'vex-theme-top';
+        vex.closeByEscape = function() { inDialog = false; }
         
         initializing = false;
         initialized = true;
@@ -415,10 +422,10 @@ maincode = function(baseUrl)
             if (evt.keyCode == 79) // 'o'
                 openSRTFile();
             
-            if (evt.keyCode == 109) // '-'
+            if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
                 syncAdjust(-0.100, false);
             
-            if (evt.keyCode == 107) // '+'
+            if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
                 syncAdjust(+0.100, false);
 
         }
@@ -432,16 +439,16 @@ maincode = function(baseUrl)
             if (inDialog)
                 return;
 
-            if (evt.keyCode == 106) // '*'
+            if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
                 getAbsoluteSync();
 
-            if (evt.keyCode == 111) // '/'
+            if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
                 getTimeScale();
 
             if (evt.keyCode == 75) // 'k'
                 setTimeScalePosition(true);
 
-            if (evt.keyCode == 76)
+            if (evt.keyCode == 76) // 'l'
                 setTimeScalePosition(false);
         }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
