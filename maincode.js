@@ -12,6 +12,14 @@ maincode = function()
     var messageDiv = null;
     var messageTimer = null;
 
+    var timeScaleObjectBase = null;
+    var timeScaleObjectRef = null;
+
+    var setTimeScalePosition = function(isBase)
+    {
+
+    }
+
     var attachSubDiv = function()
     {
         var elem = document.body;
@@ -65,7 +73,7 @@ maincode = function()
         vex.dialog.prompt(
         {
             message: 'Enter sub sync offset (in seconds):',
-            placeholder: '0.0',
+            placeholder: '' + syncOffset.toFixed(3),
             callback: function(value) 
             {
                 inDialog = false;
@@ -90,7 +98,7 @@ maincode = function()
         vex.dialog.prompt(
         {
             message: 'Enter time rescale value:',
-            placeholder: '1.0',
+            placeholder: '' + timeScale.toFixed(3),
             callback: function(value) 
             {
                 inDialog = false;
@@ -162,7 +170,7 @@ maincode = function()
         return s.replace(/^\s+|\s+$/g,"");
     }
 
-    function toSeconds(t) 
+    var toSeconds = function(t) 
     {
         var s = 0.0;
         if(t) 
@@ -176,7 +184,7 @@ maincode = function()
     var onSRTDataLoaded = function(srt)
     {
         console.log("Loaded data:");
-        console.log(srt);
+        //console.log(srt);
         //console.log(srtData);
         // From http://v2v.cc/~j/jquery.srt/jquery.srt.js
         srt = srt.replace(/\r\n|\r|\n/g, '\n');
@@ -212,7 +220,13 @@ maincode = function()
             }
         }
 
-        console.log(subtitles);
+        //console.log(subtitles);
+
+        lastShownSubIdx = -1;
+        syncOffset = 0;
+        timeScale = 1.0;
+        timeScaleObjectBase = null;
+        timeScaleObjectRef = null;
     }
 
     var endsWith = function(s, end, caseInsensitive)
@@ -304,11 +318,11 @@ maincode = function()
 
         setTimeout(function() { _this.run(); }, 0);
 
-        var oldKbdFunction = document.onkeydown;
+        var oldKbdFunctionDown = document.onkeydown;
         document.onkeydown = function(evt)
         {
-            if (oldKbdFunction)
-                oldKbdFunction(evt);
+            if (oldKbdFunctionDown)
+                oldKbdFunctionDown(evt);
 
             if (inDialog)
                 return;
@@ -323,13 +337,29 @@ maincode = function()
             if (evt.keyCode == 107) // '+'
                 syncAdjust(+0.100, false);
 
+        }
+        
+        var oldKbdFunctionUp = document.onkeyup;
+        document.onkeyup = function(evt)
+        {
+            if (oldKbdFunctionUp)
+                oldKbdFunctionUp(evt);
+
+            if (inDialog)
+                return;
+
             if (evt.keyCode == 106) // '*'
                 getAbsoluteSync();
 
             if (evt.keyCode == 111) // '/'
                 getTimeScale();
+
+            if (evt.keyCode == 75) // 'k'
+                setTimeScalePosition(true);
+
+            if (evt.keyCode == 76)
+                setTimeScalePosition(false);
         }
-        
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
