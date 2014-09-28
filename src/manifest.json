@@ -15,7 +15,7 @@
   "browser_action": {
     "default_icon": "icon.png"
   },
-  "web_accessible_resources": [ "index.html", "jquery.min.js", "sublimelet.js",
+  "web_accessible_resources": [ "index.html", "jquery.min.js", "sublimelet.js", "sublime.css",
 				"vex-theme-wireframe.css", "vex.css",
 				"vex.dialog.js", "vex.js" ]
 }

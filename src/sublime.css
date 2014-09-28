@@ -1,0 +1,32 @@
+#sublimesubtitlediv {
+        color: white;
+	font-size: 28px;
+	position: absolute;
+	bottom: 20px;
+	left: 0px;
+	right: 0px;
+	width: 95%;
+	margin: auto;
+	text-align: center;
+        text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+        font-family: 'Titillium Web', sans-serif;
+        font-weight: bold;
+}
+
+#sublimemessagediv {
+        color: white;
+	font-size: 20px;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+        text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+        font-family: 'Titillium Web', sans-serif;
+        font-weight: bold;
+}
+
+#sublimevideodiv {
+	position: relative;
+	display: inline-block;
+	border: 2px;
+	color: red;
+}

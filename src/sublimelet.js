@@ -66,23 +66,21 @@ SubLimeLet = function(baseUrl)
 
     var attachSubDiv = function()
     {
+        subDiv = document.createElement("div");
         var elem = document.body;
         elem.appendChild(subDiv);
-        subDiv.style.color = "white";
-        //subDiv.style.border = "dotted 1px";
-        subDiv.style.fontSize = "28px";
-        subDiv.style.position = "absolute";
-        subDiv.style.bottom = "20px";
-        subDiv.style.left = "0px";
-        subDiv.style.right = "0px";
-        subDiv.style.width = "95%";
-        subDiv.style.margin = "auto";
-        subDiv.style.textAlign = "center";
-        subDiv.style.textShadow = "-2px 0 black, 0 2px black, 2px 0 black, 0 -2px black";
-        subDiv.style.fontFamily = "'Titillium Web', sans-serif";
-        subDiv.style.fontWeight = "bold";
 
+        subDiv.setAttribute("id", "sublimesubtitlediv");
         subDiv.innerText = "";
+    }
+
+    var attachMessageDiv = function()
+    {
+        messageDiv = document.createElement("div");
+        document.body.appendChild(messageDiv);
+
+        messageDiv.setAttribute("id", "sublimemessagediv");
+        messageDiv.innerText = "";
     }
 
     var showMessage = function(message)
@@ -456,20 +454,8 @@ SubLimeLet = function(baseUrl)
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
 
-        subDiv = document.createElement("div");
-        attachSubDiv();
-       
-        messageDiv = document.createElement("div");
-        document.body.appendChild(messageDiv);
-        messageDiv.style.color = "white";
-        messageDiv.style.fontSize = "20px";
-        messageDiv.style.position = "absolute";
-        messageDiv.style.top = "10px";
-        messageDiv.style.right = "10px";
-        messageDiv.style.textShadow = "-2px 0 black, 0 2px black, 2px 0 black, 0 -2px black";
-        messageDiv.style.fontFamily = "'Titillium Web', sans-serif";
-        messageDiv.style.fontWeight = "bold";
-        messageDiv.innerText = "";
+        attachSubDiv(); 
+        attachMessageDiv();
     }
 
     var init = function()
@@ -573,6 +559,18 @@ SubLimeLet = function(baseUrl)
         if (video == null)
             video = videoElements[0];
 
+        console.log(video);
+        if (!video.parent.subLimeDiv)
+        {
+            var p = video.parent;
+
+            var div = document.createElement("div");
+            div.subLimeDiv = true;
+            div.setAttribute("id", "sublimevideodiv");
+
+            p.insertBefore(video, div);
+            div.appendChild(video);
+        }
     }
 }
 
