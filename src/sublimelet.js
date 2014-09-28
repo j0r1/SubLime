@@ -475,13 +475,13 @@ SubLimeLet = function(baseUrl)
     var init = function()
     {
         var resources = [ 
-                        { type: "script", url: baseUrl + "/jquery.min.js" },
-                        { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
                         { type: "link", url: baseUrl + "/vex.css" },
                         { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
+                        { type: "script", url: baseUrl + "/jquery.min.js" },
+                        { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
                         { type: "script", url: baseUrl + "/vex.js" },
                         { type: "script", url: baseUrl + "/vex.dialog.js" },
-                      ]
+                      ];
 
         function createLoadCallback(idx)
         {
