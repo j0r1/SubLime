@@ -66,20 +66,23 @@ SubLimeLet = function(baseUrl)
 
     var attachSubDiv = function()
     {
-        subDiv = document.createElement("div");
         var elem = document.body;
+        //if (video)
+        //    elem = video.parentNode; // this should be the special div
+        
         elem.appendChild(subDiv);
 
-        subDiv.setAttribute("id", "sublimesubtitlediv");
         subDiv.innerText = "";
     }
 
     var attachMessageDiv = function()
     {
-        messageDiv = document.createElement("div");
-        document.body.appendChild(messageDiv);
+        var elem = document.body;
+        //if (video)
+        //    elem = video.parentNode; // this should be the special div
 
-        messageDiv.setAttribute("id", "sublimemessagediv");
+        elem.appendChild(messageDiv);
+
         messageDiv.innerText = "";
     }
 
@@ -178,6 +181,30 @@ SubLimeLet = function(baseUrl)
             .replace(/ /g, "&#8203;&nbsp;&#8203;")
             .replace(/\r\n|\r|\n/g, "<br />");
     }
+
+    /*
+    var onCheckVideoSize = function()
+    {
+        if (!video)
+            return;
+
+        var d = video.parentNode;
+        var w = jQuery_2_1_0_for_vex(video).width();
+        var h = jQuery_2_1_0_for_vex(video).height();
+
+        console.log("" + w + "," + h);
+        if (w > 0 && h > 0)
+        {
+            d.style.width = "" + w + "px";
+            d.style.height = "" + h + "px";
+        }
+        else
+        {
+            d.style.width = "100%";
+            d.style.height = "100%";
+        }
+    }
+    */
 
     var onCheckSubtitleTimeout = function()
     {
@@ -451,8 +478,14 @@ SubLimeLet = function(baseUrl)
         }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
         setInterval(function() { onCheckSaveParameters(); }, 1000);
+        //setInterval(function() { onCheckVideoSize(); }, 1000);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
+
+        subDiv = document.createElement("div");
+        subDiv.setAttribute("id", "sublimesubtitlediv");
+        messageDiv = document.createElement("div");
+        messageDiv.setAttribute("id", "sublimemessagediv");
 
         attachSubDiv(); 
         attachMessageDiv();
@@ -463,6 +496,7 @@ SubLimeLet = function(baseUrl)
         var resources = [ 
                         { type: "link", url: baseUrl + "/vex.css" },
                         { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
+                        { type: "link", url: baseUrl + "/sublime.css" },
                         { type: "script", url: baseUrl + "/jquery.min.js" },
                         { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
                         { type: "script", url: baseUrl + "/vex.js" },
@@ -559,18 +593,22 @@ SubLimeLet = function(baseUrl)
         if (video == null)
             video = videoElements[0];
 
-        console.log(video);
-        if (!video.parent.subLimeDiv)
+        /*
+        if (!video.parentNode.subLimeDiv)
         {
-            var p = video.parent;
+            var p = video.parentNode;
 
             var div = document.createElement("div");
             div.subLimeDiv = true;
-            div.setAttribute("id", "sublimevideodiv");
+            div.className = "sublimevideodiv";
 
-            p.insertBefore(video, div);
+            p.insertBefore(div, video);
             div.appendChild(video);
         }
+        */
+
+        attachSubDiv();
+        attachMessageDiv();
     }
 }
 
