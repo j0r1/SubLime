@@ -1,5 +1,6 @@
-maincode = function()
+maincode = function(baseUrl)
 {
+    var _this = this;
     var initialized = false;
     var initializing = false;
     var video = null;
@@ -15,9 +16,52 @@ maincode = function()
     var timeScaleObjectBase = null;
     var timeScaleObjectRef = null;
 
+    var parametersChanged = false;
+    var localStorageKey = null;
+
     var setTimeScalePosition = function(isBase)
     {
+        if (lastShownSubIdx < 0 || lastShownSubIdx >= subtitles.length)
+            return;
 
+        var obj = subtitles[lastShownSubIdx];
+        if (!obj)
+            return;
+
+        var currentTime = video.currentTime;
+        var tsObj = { subTime: obj.subStart, videoTime: currentTime };
+
+        var msg = "";
+        if (isBase)
+        {
+            timeScaleObjectBase = tsObj;
+            msg = "First: ";
+        }
+        else
+        {
+            timeScaleObjectRef = tsObj;
+            msg = "Second: ";
+        }
+        msg += " sub " + tsObj.subTime.toFixed(3) + " --> video " + currentTime.toFixed(3);
+
+        if (timeScaleObjectBase && timeScaleObjectRef)
+        {
+            if (timeScaleObjectRef.subTime <= timeScaleObjectBase.subTime)
+                msg += "\nSecond subtitle time is less than first, ignoring";
+            else
+            {
+                var subDiff = timeScaleObjectRef.subTime - timeScaleObjectBase.subTime;
+                var vidDiff = timeScaleObjectRef.videoTime - timeScaleObjectBase.videoTime;
+                
+                timeScale = vidDiff/subDiff;
+                syncOffset = timeScaleObjectBase.subTime - timeScaleObjectBase.videoTime/timeScale;
+                parametersChanged = true;
+
+                msg += "\nCalculated: time scale = " + timeScale.toFixed(3) + ", sync offset = " + syncOffset.toFixed(3)
+            }
+        }
+
+        showMessage(msg);
     }
 
     var attachSubDiv = function()
@@ -63,6 +107,8 @@ maincode = function()
             syncOffset = dt;
         else
             syncOffset += dt;
+
+        parametersChanged = true;
 
         showMessage("Sync offset: " + syncOffset.toFixed(3));
     }   
@@ -112,6 +158,7 @@ maincode = function()
                         if (scale > 0 && invScale > 0)
                         {
                             timeScale = scale;
+                            parametersChanged = true;
                             showMessage("Sub timing will be rescaled by: " + timeScale.toFixed(3));
                         }
                     }
@@ -163,6 +210,37 @@ maincode = function()
         subDiv.innerText = "";
     }
 
+    var loadSavedParameters = function()
+    {
+        try
+        {
+            var lastParams = JSON.parse(localStorage[localStorageKey]);
+
+            syncOffset = lastParams.syncOffset;
+            timeScale = lastParams.timeScale;
+            
+            var msg = "Loaded: time scale = " + timeScale.toFixed(3) + ", sync offset = " + syncOffset.toFixed(3)
+        
+            showMessage(msg);
+        }
+        catch(e)
+        {
+        }
+    }
+
+    var onCheckSaveParameters = function()
+    {
+        if (!localStorageKey)
+            return;
+        if (!parametersChanged)
+            return;
+
+        parametersChanged = false;
+        var obj = { "syncOffset": syncOffset, "timeScale": timeScale };
+        localStorage[localStorageKey] = JSON.stringify(obj);
+        showMessage("Saved current parameters");
+    }
+
     var generalOpenDlg = null;
     
     var strip = function(s) 
@@ -181,8 +259,11 @@ maincode = function()
         }
         return s;
     }
-    var onSRTDataLoaded = function(srt)
+
+    var onSRTDataLoaded = function(srt, name)
     {
+        localStorageKey = name;
+
         console.log("Loaded data:");
         //console.log(srt);
         //console.log(srtData);
@@ -227,6 +308,9 @@ maincode = function()
         timeScale = 1.0;
         timeScaleObjectBase = null;
         timeScaleObjectRef = null;
+        parametersChanged = false;
+
+        loadSavedParameters();
     }
 
     var endsWith = function(s, end, caseInsensitive)
@@ -277,7 +361,7 @@ maincode = function()
             
             reader.onload = function(e)
             {
-                onSRTDataLoaded(e.target.result);
+                onSRTDataLoaded(e.target.result, "file://" + file.name);
             }
             reader.onerror = function(s)
             {
@@ -302,7 +386,7 @@ maincode = function()
                      '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="maincode.instance.onSRTFileSelected(this.files)"></li></ul>'});
     }
 
-    var resourcesInitialized = function(_this)
+    var resourcesInitialized = function()
     {
         console.log("Resources initialized");
         
@@ -361,6 +445,7 @@ maincode = function()
                 setTimeScalePosition(false);
         }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
+        setInterval(function() { onCheckSaveParameters(); }, 1000);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
 
@@ -380,23 +465,15 @@ maincode = function()
         messageDiv.innerText = "";
     }
 
-    var init = function(_this)
+    var init = function()
     {
         var resources = [ 
-                        { type: "script", url: "https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js" },
+                        { type: "script", url: baseUrl + "/jquery.min.js" },
                         { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
-                        //{ type: "link", url: "http://github.hubspot.com/vex/css/vex.css" },
-                        //{ type: "link", url: "http://github.hubspot.com/vex/css/vex-theme-wireframe.css" },
-                        //{ type: "script", url: "http://github.hubspot.com/vex/js/vex.js" },
-                        //{ type: "script", url: "http://github.hubspot.com/vex/js/vex.dialog.js" },
-                        { type: "link", url: "http://localhost:8080/vex.css" },
-                        { type: "link", url: "http://localhost:8080/vex-theme-wireframe.css" },
-                        //{ type: "link", url: "https://web-sight.appspot.com/vex-theme-top.css" },
-                        { type: "script", url: "http://localhost:8080/vex.js" },
-                        { type: "script", url: "http://localhost:8080/vex.dialog.js" },
-                        //{ type: "script", url: "https://github.com/niklasvh/html2canvas/releases/download/0.4.1/html2canvas.js" },
-                        //{ type: "script", url: "http://crypto-js.googlecode.com/svn/tags/3.1.2/src/core.js" },
-                        //{ type: "script", url: "http://crypto-js.googlecode.com/svn/tags/3.1.2/src/md5.js" },
+                        { type: "link", url: baseUrl + "/vex.css" },
+                        { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
+                        { type: "script", url: baseUrl + "/vex.js" },
+                        { type: "script", url: baseUrl + "/vex.dialog.js" },
                       ]
 
         function createLoadCallback(idx)
@@ -498,7 +575,7 @@ maincode.run = function()
 {
     if (!maincode.instance)
     {
-        maincode.instance = new maincode();
+        maincode.instance = new maincode("http://sub-lime.appspot.com");
         console.log("Allocated new instance");
     }
 
