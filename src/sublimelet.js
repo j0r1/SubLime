@@ -189,29 +189,18 @@ SubLimeLet = function(baseUrl)
             .replace(/\r\n|\r|\n/g, "<br />");
     }
 
-    /*
     var onCheckVideoSize = function()
     {
         if (!m_video)
             return;
 
-        var d = m_video.parentNode;
-        var w = jQuery_2_1_0_for_vex(m_video).width();
-        var h = jQuery_2_1_0_for_vex(m_video).height();
+        var r = m_video.getBoundingClientRect();
 
-        console.log("" + w + "," + h);
-        if (w > 0 && h > 0)
-        {
-            d.style.width = "" + w + "px";
-            d.style.height = "" + h + "px";
-        }
-        else
-        {
-            d.style.width = "100%";
-            d.style.height = "100%";
-        }
+        m_overlayDiv.style.width = "" + r.width + "px";
+        m_overlayDiv.style.height = "" + r.height + "px";
+        m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
+        m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
     }
-    */
 
     var onCheckSubtitleTimeout = function()
     {
@@ -495,7 +484,7 @@ SubLimeLet = function(baseUrl)
         }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
         setInterval(function() { onCheckSaveParameters(); }, 1000);
-        //setInterval(function() { onCheckVideoSize(); }, 1000);
+        setInterval(function() { onCheckVideoSize(); }, 1000);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
     }

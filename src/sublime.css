@@ -12,6 +12,7 @@
         font-family: 'Titillium Web', sans-serif;
         font-weight: bold;
 	z-index: 9999;
+	pointer-events: none;
 }
 
 #sublimemessagediv {
@@ -24,11 +25,12 @@
         font-family: 'Titillium Web', sans-serif;
         font-weight: bold;
 	z-index: 9999;
+	pointer-events: none;
 }
 
 #sublimevideodiv {
 	position: absolute;
-    border: dotted 3px;
-    color: green;
+	z-index: 9999;
+	pointer-events: none;
 }
 
