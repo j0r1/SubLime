@@ -1,63 +1,67 @@
 SubLimeLet = function(baseUrl)
 {
     var _this = this;
-    var initialized = false;
-    var initializing = false;
-    var video = null;
-    var subtitles = null;
-    var lastShownSubIdx = -1;
-    var subDiv = null;
-    var inDialog = false;
-    var syncOffset = 0;
-    var timeScale = 1.0;
-    var messageDiv = null;
-    var messageTimer = null;
+    var m_initialized = false;
+    var m_initializing = false;
+    var m_video = null;
+    var m_subtitles = null;
+    var m_lastShownSubIdx = -1;
+    var m_subtitleDiv = null;
+    var m_inDialog = false;
+    var m_syncOffset = 0;
+    var m_timeScale = 1.0;
+    var m_messageDiv = null;
+    var m_messageTimer = null;
 
-    var timeScaleObjectBase = null;
-    var timeScaleObjectRef = null;
+    var m_timeScaleObjectBase = null;
+    var m_timeScaleObjectRef = null;
 
-    var parametersChanged = false;
-    var localStorageKey = null;
+    var m_parametersChanged = false;
+    var m_localStorageKey = null;
+
+    var m_overlayDiv = null;
+
+    var m_generalOpenDlg = null;
 
     var setTimeScalePosition = function(isBase)
     {
-        if (lastShownSubIdx < 0 || lastShownSubIdx >= subtitles.length)
+        if (m_lastShownSubIdx < 0 || m_lastShownSubIdx >= m_subtitles.length)
             return;
 
-        var obj = subtitles[lastShownSubIdx];
+        var obj = m_subtitles[m_lastShownSubIdx];
         if (!obj)
             return;
 
-        var currentTime = video.currentTime;
-        var tsObj = { subTime: obj.subStart, videoTime: currentTime };
+        var currentTime = m_video.currentTime;
+        var tsObj = { subTime: obj.subStart, m_videoTime: currentTime };
 
         var msg = "";
         if (isBase)
         {
-            timeScaleObjectBase = tsObj;
+            m_timeScaleObjectBase = tsObj;
             msg = "First: ";
         }
         else
         {
-            timeScaleObjectRef = tsObj;
+            m_timeScaleObjectRef = tsObj;
             msg = "Second: ";
         }
-        msg += " sub " + tsObj.subTime.toFixed(3) + " --> video " + currentTime.toFixed(3);
+        msg += " sub " + tsObj.subTime.toFixed(3) + " --> m_video " + currentTime.toFixed(3);
 
-        if (timeScaleObjectBase && timeScaleObjectRef)
+        if (m_timeScaleObjectBase && m_timeScaleObjectRef)
         {
-            if (timeScaleObjectRef.subTime <= timeScaleObjectBase.subTime)
+            if (m_timeScaleObjectRef.subTime <= m_timeScaleObjectBase.subTime)
                 msg += "\nSecond subtitle time is less than first, ignoring";
             else
             {
-                var subDiff = timeScaleObjectRef.subTime - timeScaleObjectBase.subTime;
-                var vidDiff = timeScaleObjectRef.videoTime - timeScaleObjectBase.videoTime;
+                var subDiff = m_timeScaleObjectRef.subTime - m_timeScaleObjectBase.subTime;
+                var vidDiff = m_timeScaleObjectRef.m_videoTime - m_timeScaleObjectBase.m_videoTime;
                 
-                timeScale = vidDiff/subDiff;
-                syncOffset = timeScaleObjectBase.subTime - timeScaleObjectBase.videoTime/timeScale;
-                parametersChanged = true;
+                m_timeScale = vidDiff/subDiff;
+                m_syncOffset = m_timeScaleObjectBase.subTime - m_timeScaleObjectBase.m_videoTime/m_timeScale;
+                m_parametersChanged = true;
 
-                msg += "\nCalculated: time scale = " + timeScale.toFixed(3) + ", sync offset = " + syncOffset.toFixed(3)
+                msg += "\nCalculated: time scale = " + m_timeScale.toFixed(3) + ", sync offset = " + m_syncOffset.toFixed(3)
             }
         }
 
@@ -66,64 +70,64 @@ SubLimeLet = function(baseUrl)
 
     var attachSubDiv = function()
     {
-        var elem = document.body;
-        //if (video)
-        //    elem = video.parentNode; // this should be the special div
+        var elem = m_overlayDiv;
+        //var elem = document.body;
+        //if (m_video)
+        //    elem = m_video.parentNode; // this should be the special div
         
-        elem.appendChild(subDiv);
+        elem.appendChild(m_subtitleDiv);
 
-        subDiv.innerText = "";
+        m_subtitleDiv.innerText = "";
     }
 
     var attachMessageDiv = function()
     {
-        var elem = document.body;
-        //if (video)
-        //    elem = video.parentNode; // this should be the special div
+        var elem = m_overlayDiv;
+        //var elem = document.body;
+        //if (m_video)
+        //    elem = m_video.parentNode; // this should be the special div
 
-        elem.appendChild(messageDiv);
+        elem.appendChild(m_messageDiv);
 
-        messageDiv.innerText = "";
+        m_messageDiv.innerText = "";
     }
 
     var showMessage = function(message)
     {
-        if (messageTimer)
+        if (m_messageTimer)
         {
-            clearTimeout(messageTimer);
-            messageTimer = null;
+            clearTimeout(m_messageTimer);
+            m_messageTimer = null;
         }
 
-        messageDiv.innerText = message;
-        messageTimer = setTimeout(function()
+        m_messageDiv.innerText = message;
+        m_messageTimer = setTimeout(function()
         {
-            messageTimer = null;
-            messageDiv.innerText = "";
+            m_messageTimer = null;
+            m_messageDiv.innerText = "";
         }, 2000);
     }
 
     var syncAdjust = function(dt, absolute)
     {
         if (absolute)
-            syncOffset = dt;
+            m_syncOffset = dt;
         else
-            syncOffset += dt;
+            m_syncOffset += dt;
 
-        parametersChanged = true;
+        m_parametersChanged = true;
 
-        showMessage("Sync offset: " + syncOffset.toFixed(3));
+        showMessage("Sync offset: " + m_syncOffset.toFixed(3));
     }   
 
     var getAbsoluteSync = function()
     {
-        inDialog = true;
         vex.dialog.prompt(
         {
             message: 'Enter sub sync offset (in seconds):',
-            placeholder: '' + syncOffset.toFixed(3),
+            placeholder: '' + m_syncOffset.toFixed(3),
             callback: function(value) 
             {
-                inDialog = false;
                 if (value !== false)
                 {
                     try
@@ -135,20 +139,23 @@ SubLimeLet = function(baseUrl)
                     {
                     }
                 }
-            }
+            },
+            afterOpen: function() { m_inDialog = true; },
+            afterClose: function() { m_inDialog = false; },
         });
     }
 
     var getTimeScale = function()
     {
-        inDialog = true;
         vex.dialog.prompt(
         {
             message: 'Enter time rescale value:',
-            placeholder: '' + timeScale.toFixed(3),
+            placeholder: '' + m_timeScale.toFixed(3),
+            afterOpen: function() { m_inDialog = true; },
+            afterClose: function() { m_inDialog = false; },
             callback: function(value) 
             {
-                inDialog = false;
+                m_inDialog = false;
                 if (value !== false)
                 {
                     try
@@ -158,9 +165,9 @@ SubLimeLet = function(baseUrl)
 
                         if (scale > 0 && invScale > 0)
                         {
-                            timeScale = scale;
-                            parametersChanged = true;
-                            showMessage("Sub timing will be rescaled by: " + timeScale.toFixed(3));
+                            m_timeScale = scale;
+                            m_parametersChanged = true;
+                            showMessage("Sub timing will be rescaled by: " + m_timeScale.toFixed(3));
                         }
                     }
                     catch(e)
@@ -185,12 +192,12 @@ SubLimeLet = function(baseUrl)
     /*
     var onCheckVideoSize = function()
     {
-        if (!video)
+        if (!m_video)
             return;
 
-        var d = video.parentNode;
-        var w = jQuery_2_1_0_for_vex(video).width();
-        var h = jQuery_2_1_0_for_vex(video).height();
+        var d = m_video.parentNode;
+        var w = jQuery_2_1_0_for_vex(m_video).width();
+        var h = jQuery_2_1_0_for_vex(m_video).height();
 
         console.log("" + w + "," + h);
         if (w > 0 && h > 0)
@@ -208,43 +215,54 @@ SubLimeLet = function(baseUrl)
 
     var onCheckSubtitleTimeout = function()
     {
-        if (!video)
+        if (!m_video)
             return;
-        if (!subtitles)
+        if (!m_subtitles)
             return;
 
-        var currentTime = video.currentTime/timeScale + syncOffset;
-        var num = subtitles.length;
+        if (isNaN(m_syncOffset))
+        {
+            m_syncOffset = 0.0;
+            m_parametersChanged = true;
+        }
+        if (isNaN(m_timeScale))
+        {
+            m_timeScale = 1.0;
+            m_parametersChanged = true;
+        }
+
+        var currentTime = m_video.currentTime/m_timeScale + m_syncOffset;
+        var num = m_subtitles.length;
 
         for (var i = 0 ; i < num ; i++)
         {
-            var obj = subtitles[i];
+            var obj = m_subtitles[i];
             if (obj)
             {
                 if (obj.subStart < currentTime && currentTime < obj.subEnd)
                 {
-                    if (lastShownSubIdx != i)
+                    if (m_lastShownSubIdx != i)
                     {
-                        lastShownSubIdx = i;
-                        subDiv.innerText = obj.subText;
+                        m_lastShownSubIdx = i;
+                        m_subtitleDiv.innerText = obj.subText;
                     }
                     return;
                 }
             }
         }
-        subDiv.innerText = "";
+        m_subtitleDiv.innerText = "";
     }
 
     var loadSavedParameters = function()
     {
         try
         {
-            var lastParams = JSON.parse(localStorage[localStorageKey]);
+            var lastParams = JSON.parse(localStorage[m_localStorageKey]);
 
-            syncOffset = lastParams.syncOffset;
-            timeScale = lastParams.timeScale;
+            m_syncOffset = lastParams.m_syncOffset;
+            m_timeScale = lastParams.m_timeScale;
             
-            var msg = "Loaded: time scale = " + timeScale.toFixed(3) + ", sync offset = " + syncOffset.toFixed(3)
+            var msg = "Loaded: time scale = " + m_timeScale.toFixed(3) + ", sync offset = " + m_syncOffset.toFixed(3)
         
             showMessage(msg);
         }
@@ -255,19 +273,17 @@ SubLimeLet = function(baseUrl)
 
     var onCheckSaveParameters = function()
     {
-        if (!localStorageKey)
+        if (!m_localStorageKey)
             return;
-        if (!parametersChanged)
+        if (!m_parametersChanged)
             return;
 
-        parametersChanged = false;
-        var obj = { "syncOffset": syncOffset, "timeScale": timeScale };
-        localStorage[localStorageKey] = JSON.stringify(obj);
+        m_parametersChanged = false;
+        var obj = { "m_syncOffset": m_syncOffset, "m_timeScale": m_timeScale };
+        localStorage[m_localStorageKey] = JSON.stringify(obj);
         showMessage("Saved current parameters");
     }
-
-    var generalOpenDlg = null;
-    
+ 
     var strip = function(s) 
     {
         return s.replace(/^\s+|\s+$/g,"");
@@ -287,14 +303,14 @@ SubLimeLet = function(baseUrl)
 
     var onSRTDataLoaded = function(srt, name)
     {
-        localStorageKey = name;
+        m_localStorageKey = name;
 
         console.log("Loaded data:");
         //console.log(srt);
         //console.log(srtData);
         // From http://v2v.cc/~j/jquery.srt/jquery.srt.js
         srt = srt.replace(/\r\n|\r|\n/g, '\n');
-        subtitles = [];
+        m_subtitles = [];
 
         srt = strip(srt);
         var srt_ = srt.split('\n\n');
@@ -316,7 +332,7 @@ SubLimeLet = function(baseUrl)
                     }
                     is = toSeconds(i);
                     os = toSeconds(o);
-                    subtitles[n] = { subStart:is, subEnd: os, subText: t};
+                    m_subtitles[n] = { subStart:is, subEnd: os, subText: t};
                 }
             }
             catch(e)
@@ -326,14 +342,14 @@ SubLimeLet = function(baseUrl)
             }
         }
 
-        //console.log(subtitles);
+        //console.log(m_subtitles);
 
-        lastShownSubIdx = -1;
-        syncOffset = 0;
-        timeScale = 1.0;
-        timeScaleObjectBase = null;
-        timeScaleObjectRef = null;
-        parametersChanged = false;
+        m_lastShownSubIdx = -1;
+        m_syncOffset = 0;
+        m_timeScale = 1.0;
+        m_timeScaleObjectBase = null;
+        m_timeScaleObjectRef = null;
+        m_parametersChanged = false;
 
         loadSavedParameters();
     }
@@ -369,8 +385,7 @@ SubLimeLet = function(baseUrl)
 
     this.onSRTFileSelected = function(files)
     {
-        vex.close(generalOpenDlg.data().vex.id);
-        inDialog = false;
+        vex.close(m_generalOpenDlg.data().vex.id);
 
         try
         {
@@ -392,45 +407,47 @@ SubLimeLet = function(baseUrl)
             {
                 var msg = "Unknown error";
                 try { msg = "" + reader.error.message; } catch(e) { }
-                vex.dialog.alert("Error opening file:<br>" + textToHTML(msg));
+                showAlert("Error opening file:<br>" + textToHTML(msg));
             }
             reader.readAsText(file);
         }
         catch(err)
         {
-            vex.dialog.alert("Error: " + textToHTML(err));
+            showAlert("Error: " + textToHTML(err));
         }
+    }
+
+    var showAlert = function(msg)
+    {
+        vex.dialog.alert(
+        {   
+            message: msg,
+            afterOpen: function() { m_inDialog = true; },
+            afterClose: function() { m_inDialog = false; },
+        });
     }
 
     var openSRTFile = function()
     {
-        inDialog = true;
-        generalOpenDlg = vex.dialog.alert(
-            {   contentCSS: { width: "60%" },
-                message: 'How do you want to load the file?' + 
+        m_generalOpenDlg = vex.dialog.alert(
+        {   
+            contentCSS: { width: "60%" },
+            message: 'How do you want to load the file?' + 
                      '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="SubLimeLet.instance.onSRTFileSelected(this.files)"></li></ul>',
-                callback: function(data) 
-                {
-                    console.log("Closed generalOpenDlg");
-                    inDialog = false;
-                }
-            });
+            afterOpen: function() { m_inDialog = true; },
+            afterClose: function() { m_inDialog = false; },
+        });
     }
 
     var resourcesInitialized = function()
     {
-        console.log("Resources initialized");
-        
-//        var s = document.createElement("style");
-//        s.innerHTML = ".vex.vex-theme-wireframe .vex-content { width: 90%; }";
-//        document.head.appendChild(s);
+        console.log("Resources m_initialized");
 
         vex.defaultOptions.className = 'vex-theme-wireframe';
-//        vex.defaultOptions.className = 'vex-theme-top';
-        vex.closeByEscape = function() { inDialog = false; }
+        //vex.closeByEscape = function() { }
         
-        initializing = false;
-        initialized = true;
+        m_initializing = false;
+        m_initialized = true;
 
         setTimeout(function() { _this.run(); }, 0);
 
@@ -440,7 +457,7 @@ SubLimeLet = function(baseUrl)
             if (oldKbdFunctionDown)
                 oldKbdFunctionDown(evt);
 
-            if (inDialog)
+            if (m_inDialog)
                 return;
 
             console.log("KeyCode = " + evt.keyCode);
@@ -461,7 +478,7 @@ SubLimeLet = function(baseUrl)
             if (oldKbdFunctionUp)
                 oldKbdFunctionUp(evt);
 
-            if (inDialog)
+            if (m_inDialog)
                 return;
 
             if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
@@ -481,14 +498,6 @@ SubLimeLet = function(baseUrl)
         //setInterval(function() { onCheckVideoSize(); }, 1000);
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
-
-        subDiv = document.createElement("div");
-        subDiv.setAttribute("id", "sublimesubtitlediv");
-        messageDiv = document.createElement("div");
-        messageDiv.setAttribute("id", "sublimemessagediv");
-
-        attachSubDiv(); 
-        attachMessageDiv();
     }
 
     var init = function()
@@ -557,12 +566,12 @@ SubLimeLet = function(baseUrl)
 
     function myBookmarkLet()
     {
-        if (window.initializingBookmarklet)
+        if (window.m_initializingBookmarklet)
             return;
 
-        if (!window.initializedBookmarklet)
+        if (!window.m_initializedBookmarklet)
         {
-            window.initializingBookmarklet = true;
+            window.m_initializingBookmarklet = true;
             initBookmarklet();
             return;
         }
@@ -574,39 +583,45 @@ SubLimeLet = function(baseUrl)
     {
         console.log("run");
 
-        if (initializing)
+        if (m_initializing)
             return;
-        if (!initialized)
+        if (!m_initialized)
         {
-            initializing = true;
+            m_initializing = true;
             init(this);
             return;
         }
 
-        var videoElements = document.getElementsByTagName("video");
-        if (videoElements.length < 1)
+        // For now, only overlay on one element
+        if (m_video)
+            return;
+
+        var m_videoElements = document.getElementsByTagName("video");
+        if (m_videoElements.length < 1)
         {
-            alert("No video element found on this page");
+            alert("No m_video element found on this page");
             return;
         }
 
-        if (video == null)
-            video = videoElements[0];
+        m_video = m_videoElements[0];
+    
+        var r = m_video.getBoundingClientRect();
+        console.log(r);
 
-        /*
-        if (!video.parentNode.subLimeDiv)
-        {
-            var p = video.parentNode;
+        m_overlayDiv = document.createElement("div");
+        m_overlayDiv.setAttribute("id", "sublimevideodiv");
 
-            var div = document.createElement("div");
-            div.subLimeDiv = true;
-            div.className = "sublimevideodiv";
+        m_subtitleDiv = document.createElement("div");
+        m_subtitleDiv.setAttribute("id", "sublimesubtitlediv");
+        m_messageDiv = document.createElement("div");
+        m_messageDiv.setAttribute("id", "sublimemessagediv");
 
-            p.insertBefore(div, video);
-            div.appendChild(video);
-        }
-        */
+        m_overlayDiv.style.width = "" + r.width + "px";
+        m_overlayDiv.style.height = "" + r.height + "px";
+        m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
+        m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
 
+        document.body.appendChild(m_overlayDiv);
         attachSubDiv();
         attachMessageDiv();
     }

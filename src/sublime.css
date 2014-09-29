@@ -26,7 +26,9 @@
 	z-index: 9999;
 }
 
-.sublimevideodiv {
-	position: relative;
-	display: inline-block;
+#sublimevideodiv {
+	position: absolute;
+    border: dotted 3px;
+    color: green;
 }
+
