@@ -6,7 +6,6 @@
   "version": "1.0",
 
   "homepage_url": "https://sub-lime.appspot.com/",
-  "options_page": "index.html",
   "permissions": [ "activeTab" ],
   "background": {
     "scripts": ["background.js"],
