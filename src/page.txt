@@ -1,5 +1,3 @@
-<img src="icon-128x128.png" style="float:right; margin-left: 20px;">
-
 SubLime
 =======
 

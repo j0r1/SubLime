@@ -1,6 +1,17 @@
 <!doctype html>
 <html>
     <head>
+        <link rel="shortcut icon" href="/favicon.png" type="image/png">
+	<meta property="og:image" content="https://sub-lime.appspot.com/icon-128x128.png" />
+	<meta property="og:url" content="https://sub-lime.appspot.com/" />
+	<meta property="og:description" content="Show subroutines synced to HTML5 video." />
+	<meta property="og:site_name" content="SubLime" />
+	<meta property="og:title" content="SubLime" />
+	
+	<meta itemprop="name" content="SubLime">
+	<meta itemprop="description" content="Show subroutines synced to HTML5 video.">
+	<meta itemprop="image" content="https://sub-lime.appspot.com/icon-128x128.png">
+
         <script id="sublimebookmarklet">
 
             function mainInitialized()
@@ -49,8 +60,30 @@
                 elem.setAttribute("href", "javascript:" + encodeURIComponent(data));
             }
         </script>
+	<style>
+	    #sublimelogo {
+	        float: right;
+	        margin: 0px 0px 0px 20px;
+            }
+	</style>
     </head>
     <body onload="run()">
+	<script>
+	(function(d, s, id) {
+	  var js, fjs = d.getElementsByTagName(s)[0];
+	  if (d.getElementById(id)) return;
+	  js = d.createElement(s); js.id = id;
+	  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+	  fjs.parentNode.insertBefore(js, fjs);
+	}(document, 'script', 'facebook-jssdk'));
+	</script>
+
+	<div id="sublimelogo">
+		<img src="icon-128x128.png"><br>
+		<div class="g-plusone" data-size="medium" data-href="https://sub-lime.appspot.com/"></div><br>
+		<div class="fb-like" data-href="https://sub-lime.appspot.com/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="false"></div><br>
+	</div>
+
 
 <!DOCTYPE html>
     <html>
@@ -355,8 +388,6 @@ sup {
         </style>
     </head>
     <body>
-<p><img src="icon-128x128.png" style="float:right; margin-left: 20px;"></p>
-
 <h1>SubLime</h1>
 
 <p>SubLime is a tool to overlay subtitles loaded from an <a href="http://en.wikipedia.org/wiki/SubRip#SubRip_text_file_format">SRT</a>
@@ -410,9 +441,31 @@ not aware for a solution that always works for this, the best solution is probab
 make the browser window itself as large as possible (e.g. by pressing F11 or going to
 'Presentation Mode').</p>
 
+<h2>Disclaimer</h2>
+
+<p>The software is provided "as is", without warranty of any kind, express
+or implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement.  In no event shall
+the authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising
+from, out of or in connection with the software or the use or other dealings
+in the software.</p>
+
+<h2>Contact</h2>
+
+<p>You can find contact information on <a href="https://plus.google.com/107709244254418689195/about">my Google+ page</a>.</p>
+
     </body>
 </html>
 
+	<!-- Place this tag after the last +1 button tag. -->
+	<script type="text/javascript">
+	  (function() {
+	    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+	    po.src = 'https://apis.google.com/js/platform.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+	  })();
+	</script>
     </body>
 </html>
 

@@ -4,6 +4,8 @@ mkdir ../appengine/page
 
 for i in index.html \
 		icon.png \
+		icon-128x128.png \
+		favicon.png \
 		background.js \
 		jquery.min.js \
 		sublime.css \
