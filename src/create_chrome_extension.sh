@@ -13,6 +13,7 @@ for i in manifest.json \
 		vex.css \
 		vex.dialog.js \
 		vex.js \
+		FileSaver.js \
 
 do
 	cp $i ../chromeextension/

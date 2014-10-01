@@ -23,6 +23,79 @@ SubLimeLet = function(baseUrl)
 
     var m_generalOpenDlg = null;
 
+    var toSubTime = function(S)
+    {
+        return (S - m_syncOffset)*m_timeScale;
+    }
+
+    var toTimeString = function(t)
+    {
+        if (t <= 0)
+            return "00:00:00,000";
+
+        var hours = Math.floor(t/3600);
+        var tmp = t - hours*3600;
+        var minutes = Math.floor(tmp/60);
+        tmp = tmp-minutes*60;
+
+        var hs = "" + hours;
+        if (hs.length < 2)
+            hs = "0" + hs;
+        var ms = "" + minutes;
+        if (ms.length < 2)
+            ms = "0" + ms;
+        var ss = tmp.toFixed(3);
+
+        var idx = ss.indexOf(".");
+        if (idx < 2)
+            ss = "0" + ss;
+
+        return hs + ":" + ms + ":" + ss;
+    }
+
+    var saveSyncAdjustedSubtitles = function()
+    {
+        if (!m_subtitles)
+            return;
+
+        var resyncedSRT = "";
+        var subLen = m_subtitles.length;
+        for (var i = 0 ; i < subLen ; i++)
+        {
+            var obj = m_subtitles[i];
+            if (obj)
+            {
+                resyncedSRT += "" + i + "\n";
+                resyncedSRT += toTimeString(toSubTime(obj.subStart)) + " --> " + toTimeString(toSubTime(obj.subEnd)) + "\n";
+                resyncedSRT += obj.subText;
+
+                var tl = obj.subText.length;
+
+                if (tl > 1 && obj.subText[tl-1] != '\n')
+                    resyncedSRT += "\n";
+
+                resyncedSRT += "\n";
+            }
+        }
+
+        // Is this the right character set?
+        var blob = new Blob([resyncedSRT], {type: "text/plain;charset=utf-8"});
+
+        vex.dialog.prompt(
+        {
+            afterOpen: function() { m_inDialog = true; },
+            afterClose: function() { m_inDialog = false; },
+            message: 'Enter the name of the file to write the (resynced) subtitle info to',
+            placeholder: 'newfile.srt',
+            callback: function(value) 
+            {
+                console.log(value);
+                if (value !== false)
+                    saveAs(blob, value);
+            }
+        });
+    }
+
     var setTimeScalePosition = function(isBase)
     {
         if (m_lastShownSubIdx < 0 || m_lastShownSubIdx >= m_subtitles.length)
@@ -481,6 +554,9 @@ SubLimeLet = function(baseUrl)
 
             if (evt.keyCode == 76) // 'l'
                 setTimeScalePosition(false);
+
+            if (evt.keyCode == 83) // 's'
+                saveSyncAdjustedSubtitles();
         }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
         setInterval(function() { onCheckSaveParameters(); }, 1000);
@@ -499,6 +575,7 @@ SubLimeLet = function(baseUrl)
                         { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
                         { type: "script", url: baseUrl + "/vex.js" },
                         { type: "script", url: baseUrl + "/vex.dialog.js" },
+                        { type: "script", url: baseUrl + "/FileSaver.js" },
                       ];
 
         function createLoadCallback(idx)

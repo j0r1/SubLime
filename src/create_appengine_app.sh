@@ -12,6 +12,7 @@ for i in index.html \
 		vex.css \
 		vex.dialog.js \
 		vex.js \
+		FileSaver.js \
 
 do
 	cp $i ../appengine/page/

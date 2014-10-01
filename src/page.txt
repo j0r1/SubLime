@@ -1,0 +1,64 @@
+<img src="icon-128x128.png" style="float:right; margin-left: 20px;">
+
+SubLime
+=======
+
+SubLime is a tool to overlay subtitles loaded from an [SRT](http://en.wikipedia.org/wiki/SubRip#SubRip_text_file_format)
+file over an HTML5 video element in your browser. It is available as a
+ 
+ - bookmarklet: <a href="javascript:void(0)" id="bookmarkletlink">SubLimeLet</a>
+ - extension for the Chrome browser: [extension](https://chrome.google.com/webstore/detail/sublime/mfbmioaibkokjaddfppfcpnpcbjhlomo)
+
+It is known to work with [YouTube](http://www.youtube.com/) and [Netflix](http://www.netflix.com)
+videos (if HTML5 video is used).
+
+Subtitle sync
+-------------
+In case the subtitles from your file are not well synchronized to the time of the
+video, you can resync them in a number of ways. Let's call `v` the video time and
+`s` the subtitle time, then a time offset `o` and time scale factor `f` can be
+set. For a specific video time `v`, the corresponding time looked for in the
+subtitle file is then
+
+	s(v) = v/f+o
+
+Alternatively, the subtitle time `s` will be shown at video time
+
+	v(s) = (s-o)*f
+
+The values of `o` and `f` can be set directly, or can be calculated by matching the
+subtitles to the video at two times, pressing `k` and `l` respectively at each time.
+
+Key bindings
+------------
+ - '+': add 100ms to the subtitle offset `o`
+ - '-': subtract 100ms from the subtitle offset `o`
+ - '*' or 'g': set the subtitle time offset `o`
+ - '/' or 'h': set the subtitle time rescale factor `f`
+ - 'o': open another subtitle file
+ - 'k': set first sync calculation point
+ - 'l': set second sync calculation point
+ - 's': save the current (possibly re-synced) subtitles to a file
+
+Full screen problems
+--------------------
+Because the subtitle text is simply shown as an overlay over the video, the subtitles
+will most likely disappear when clicking the button to show the video full screen. I'm
+not aware for a solution that always works for this, the best solution is probably to
+make the browser window itself as large as possible (e.g. by pressing F11 or going to
+'Presentation Mode').
+
+Disclaimer
+----------
+The software is provided "as is", without warranty of any kind, express
+or implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement.  In no event shall
+the authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising
+from, out of or in connection with the software or the use or other dealings
+in the software.
+
+Contact
+-------
+You can find contact information on [my Google+ page](https://plus.google.com/107709244254418689195/about).
+
