@@ -50,6 +50,11 @@
         options.$vexOverlay = $('<div>').addClass(vex.baseClassNames.overlay).addClass(options.overlayClassName).css(options.overlayCSS).data({
           vex: options
         });
+
+        if (options.beforeOpen) {
+          options.beforeOpen(options.$vexContent, options);
+        }
+
         if (options.overlayClosesOnClick) {
           options.$vexOverlay.bind('click.vex', function(e) {
             if (e.target !== this) {

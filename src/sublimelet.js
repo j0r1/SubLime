@@ -23,6 +23,9 @@ SubLimeLet = function(baseUrl)
 
     var m_generalOpenDlg = null;
 
+    var m_oldKbdFunctionDown = null;
+    var m_oldKbdFunctionUp = null;
+
     var toSubTime = function(S)
     {
         return (S - m_syncOffset)*m_timeScale;
@@ -44,9 +47,9 @@ SubLimeLet = function(baseUrl)
         var ms = "" + minutes;
         if (ms.length < 2)
             ms = "0" + ms;
-        var ss = tmp.toFixed(3);
+        var ss = tmp.toFixed(3).replace('.',',');
 
-        var idx = ss.indexOf(".");
+        var idx = ss.indexOf(",");
         if (idx < 2)
             ss = "0" + ss;
 
@@ -63,7 +66,7 @@ SubLimeLet = function(baseUrl)
         for (var i = 0 ; i < subLen ; i++)
         {
             var obj = m_subtitles[i];
-            if (obj)
+            if (obj && obj.subStart >= 0) // no negative times
             {
                 resyncedSRT += "" + i + "\n";
                 resyncedSRT += toTimeString(toSubTime(obj.subStart)) + " --> " + toTimeString(toSubTime(obj.subEnd)) + "\n";
@@ -83,8 +86,6 @@ SubLimeLet = function(baseUrl)
 
         vex.dialog.prompt(
         {
-            afterOpen: function() { m_inDialog = true; },
-            afterClose: function() { m_inDialog = false; },
             message: 'Enter the name of the file to write the (resynced) subtitle info to',
             placeholder: 'newfile.srt',
             callback: function(value) 
@@ -106,7 +107,7 @@ SubLimeLet = function(baseUrl)
             return;
 
         var currentTime = m_video.currentTime;
-        var tsObj = { subTime: obj.subStart, m_videoTime: currentTime };
+        var tsObj = { subTime: obj.subStart, videoTime: currentTime };
 
         var msg = "";
         if (isBase)
@@ -119,7 +120,7 @@ SubLimeLet = function(baseUrl)
             m_timeScaleObjectRef = tsObj;
             msg = "Second: ";
         }
-        msg += " sub " + tsObj.subTime.toFixed(3) + " --> m_video " + currentTime.toFixed(3);
+        msg += " sub " + tsObj.subTime.toFixed(3) + " --> video " + currentTime.toFixed(3);
 
         if (m_timeScaleObjectBase && m_timeScaleObjectRef)
         {
@@ -128,10 +129,10 @@ SubLimeLet = function(baseUrl)
             else
             {
                 var subDiff = m_timeScaleObjectRef.subTime - m_timeScaleObjectBase.subTime;
-                var vidDiff = m_timeScaleObjectRef.m_videoTime - m_timeScaleObjectBase.m_videoTime;
+                var vidDiff = m_timeScaleObjectRef.videoTime - m_timeScaleObjectBase.videoTime;
                 
                 m_timeScale = vidDiff/subDiff;
-                m_syncOffset = m_timeScaleObjectBase.subTime - m_timeScaleObjectBase.m_videoTime/m_timeScale;
+                m_syncOffset = m_timeScaleObjectBase.subTime - m_timeScaleObjectBase.videoTime/m_timeScale;
                 m_parametersChanged = true;
 
                 msg += "\nCalculated: time scale = " + m_timeScale.toFixed(3) + ", sync offset = " + m_syncOffset.toFixed(3)
@@ -139,30 +140,6 @@ SubLimeLet = function(baseUrl)
         }
 
         showMessage(msg);
-    }
-
-    var attachSubDiv = function()
-    {
-        var elem = m_overlayDiv;
-        //var elem = document.body;
-        //if (m_video)
-        //    elem = m_video.parentNode; // this should be the special div
-        
-        elem.appendChild(m_subtitleDiv);
-
-        m_subtitleDiv.innerText = "";
-    }
-
-    var attachMessageDiv = function()
-    {
-        var elem = m_overlayDiv;
-        //var elem = document.body;
-        //if (m_video)
-        //    elem = m_video.parentNode; // this should be the special div
-
-        elem.appendChild(m_messageDiv);
-
-        m_messageDiv.innerText = "";
     }
 
     var showMessage = function(message)
@@ -213,8 +190,6 @@ SubLimeLet = function(baseUrl)
                     }
                 }
             },
-            afterOpen: function() { m_inDialog = true; },
-            afterClose: function() { m_inDialog = false; },
         });
     }
 
@@ -224,11 +199,8 @@ SubLimeLet = function(baseUrl)
         {
             message: 'Enter time rescale value:',
             placeholder: '' + m_timeScale.toFixed(3),
-            afterOpen: function() { m_inDialog = true; },
-            afterClose: function() { m_inDialog = false; },
             callback: function(value) 
             {
-                m_inDialog = false;
                 if (value !== false)
                 {
                     try
@@ -262,9 +234,11 @@ SubLimeLet = function(baseUrl)
             .replace(/\r\n|\r|\n/g, "<br />");
     }
 
-    var onCheckVideoSize = function()
+    var onCheckVideoSizeTimeout = function()
     {
         if (!m_video)
+            return;
+        if (!m_overlayDiv)
             return;
 
         var r = m_video.getBoundingClientRect();
@@ -333,7 +307,7 @@ SubLimeLet = function(baseUrl)
         }
     }
 
-    var onCheckSaveParameters = function()
+    var onCheckSaveParametersTimeout = function()
     {
         if (!m_localStorageKey)
             return;
@@ -346,20 +320,13 @@ SubLimeLet = function(baseUrl)
         showMessage("Saved current parameters");
     }
  
-    var strip = function(s) 
-    {
-        return s.replace(/^\s+|\s+$/g,"");
-    }
-
     var toSeconds = function(t) 
     {
         var s = 0.0;
-        if(t) 
-        {
-            var p = t.split(':');
-            for(var i=0;i<p.length;i++)
-                s = s * 60 + parseFloat(p[i].replace(',', '.'))
-        }
+        var p = t.split(':');
+        for(var i = 0; i < p.length ; i++)
+            s = s * 60 + parseFloat(p[i].replace(',', '.'))
+        
         return s;
     }
 
@@ -367,44 +334,73 @@ SubLimeLet = function(baseUrl)
     {
         m_localStorageKey = name;
 
-        console.log("Loaded data:");
-        //console.log(srt);
-        //console.log(srtData);
-        // From http://v2v.cc/~j/jquery.srt/jquery.srt.js
-        srt = srt.replace(/\r\n|\r|\n/g, '\n');
-        m_subtitles = [];
+        console.log("Loaded SRT data");
 
-        srt = strip(srt);
-        var srt_ = srt.split('\n\n');
-        for(s in srt_) 
+        var lines = srt.split('\n');
+        for (var i = 0 ; i < lines.length ; i++)
+            lines[i] = jQuery_2_1_0_for_vex.trim(lines[i]);
+
+        var currentGroup = [ ];
+        var lineGroups = [ ];
+        for (var i = 0 ; i < lines.length ; i++)
         {
-            try
+            if (lines[i].length == 0)
             {
-                st = srt_[s].split('\n');
-                if(st.length >= 2) 
+                if (currentGroup.length > 0)
                 {
-                    n = parseInt(st[0]);
-                    i = strip(st[1].split(' --> ')[0]);
-                    o = strip(st[1].split(' --> ')[1]);
-                    t = st[2];
-                    if(st.length > 2) 
-                    {
-                        for(j=3; j<st.length;j++)
-                        t += '\n'+st[j];
-                    }
-                    is = toSeconds(i);
-                    os = toSeconds(o);
-                    m_subtitles[n] = { subStart:is, subEnd: os, subText: t};
+                    lineGroups.push(currentGroup);
+                    currentGroup = [ ];
+                }
+            }
+            else
+                currentGroup.push(lines[i]);
+        }
+
+        if (currentGroup.length > 0)
+            lineGroups.push(currentGroup);
+
+        m_subtitles = [ ];
+        for (var g = 0 ; g < lineGroups.length ; g++)
+        {
+            try // just to make sure that some unforeseen error doesn't mess everything up
+            {
+                var group = lineGroups[g];
+                if (group.length > 2)
+                {
+                    var number = parseInt(group[0]);
+                    if (isNaN(number))
+                        continue; // bad line, ignore
+
+                    var subTimes = group[1].split(' --> ');
+                    if (length.subTimes < 2)
+                        continue; // bad line, ignore
+
+                    var startTimeStr = jQuery_2_1_0_for_vex.trim(subTimes[0]);
+                    var endTimeStr = jQuery_2_1_0_for_vex.trim(subTimes[1]);
+
+                    if (startTimeStr.length == 0 || endTimeStr.length == 0)
+                        continue; // bad line, ignore
+
+                    var startTime = toSeconds(startTimeStr);
+                    var endTime = toSeconds(endTimeStr);
+
+                    if (isNaN(startTime) || isNaN(endTime))
+                        continue; // bad line, ignore
+
+                    var subTitleText = group[2];
+
+                    for (var i = 3 ; i < group.length ; i++)
+                        subTitleText += "\n" + group[i];
+
+                    m_subtitles[number] = { subStart: startTime, subEnd: endTime, subText: subTitleText };
                 }
             }
             catch(e)
             {
-                console.log("Error processing s = ", s);
-                console.log(e);
             }
         }
 
-        //console.log(m_subtitles);
+//        console.log(m_subtitles);
 
         m_lastShownSubIdx = -1;
         m_syncOffset = 0;
@@ -418,12 +414,9 @@ SubLimeLet = function(baseUrl)
 
     var endsWith = function(s, end, caseInsensitive)
     {
-        var l = s.length;
-
-        if (l < end.length)
+        var startIdx = s.length - end.length;
+        if (startIdx < 0)
             return false;
-
-        var startIdx = l-end.length;
 
         if (caseInsensitive)
         {
@@ -469,24 +462,14 @@ SubLimeLet = function(baseUrl)
             {
                 var msg = "Unknown error";
                 try { msg = "" + reader.error.message; } catch(e) { }
-                showAlert("Error opening file:<br>" + textToHTML(msg));
+                vex.dialog.alert("Error opening file:<br>" + textToHTML(msg));
             }
             reader.readAsText(file);
         }
         catch(err)
         {
-            showAlert("Error: " + textToHTML(err));
+            vex.dialog.alert("Error: " + textToHTML(err));
         }
-    }
-
-    var showAlert = function(msg)
-    {
-        vex.dialog.alert(
-        {   
-            message: msg,
-            afterOpen: function() { m_inDialog = true; },
-            afterClose: function() { m_inDialog = false; },
-        });
     }
 
     var openSRTFile = function()
@@ -496,9 +479,50 @@ SubLimeLet = function(baseUrl)
             contentCSS: { width: "60%" },
             message: 'How do you want to load the file?' + 
                      '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="SubLimeLet.instance.onSRTFileSelected(this.files)"></li></ul>',
-            afterOpen: function() { m_inDialog = true; },
-            afterClose: function() { m_inDialog = false; },
         });
+    }
+
+    var newKeyDownHandler = function(evt)
+    {
+        if (m_oldKbdFunctionDown)
+            m_oldKbdFunctionDown(evt);
+
+        if (m_inDialog)
+            return;
+
+        console.log("KeyCode = " + evt.keyCode);
+        if (evt.keyCode == 79) // 'o'
+            openSRTFile();
+        
+        if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
+            syncAdjust(-0.100, false);
+        
+        if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
+            syncAdjust(+0.100, false);
+    }
+
+    var newKeyUpHandler = function(evt)
+    {
+        if (m_oldKbdFunctionUp)
+            m_oldKbdFunctionUp(evt);
+
+        if (m_inDialog)
+            return;
+
+        if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
+            getAbsoluteSync();
+
+        if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
+            getTimeScale();
+
+        if (evt.keyCode == 75) // 'k'
+            setTimeScalePosition(true);
+
+        if (evt.keyCode == 76) // 'l'
+            setTimeScalePosition(false);
+
+        if (evt.keyCode == 83) // 's'
+            saveSyncAdjustedSubtitles();
     }
 
     var resourcesInitialized = function()
@@ -506,63 +530,25 @@ SubLimeLet = function(baseUrl)
         console.log("Resources m_initialized");
 
         vex.defaultOptions.className = 'vex-theme-wireframe';
-        //vex.closeByEscape = function() { }
+        vex.defaultOptions.beforeOpen = function() { m_inDialog = true; }; // note: I added this beforeOpen to vex
+        vex.defaultOptions.afterClose = function() { m_inDialog = false; };
         
         m_initializing = false;
         m_initialized = true;
 
-        setTimeout(function() { _this.run(); }, 0);
-
-        var oldKbdFunctionDown = document.onkeydown;
-        document.onkeydown = function(evt)
-        {
-            if (oldKbdFunctionDown)
-                oldKbdFunctionDown(evt);
-
-            if (m_inDialog)
-                return;
-
-            console.log("KeyCode = " + evt.keyCode);
-            if (evt.keyCode == 79) // 'o'
-                openSRTFile();
-            
-            if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
-                syncAdjust(-0.100, false);
-            
-            if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
-                syncAdjust(+0.100, false);
-
-        }
+        m_oldKbdFunctionDown = document.onkeydown;
+        document.onkeydown = newKeyDownHandler;
         
-        var oldKbdFunctionUp = document.onkeyup;
-        document.onkeyup = function(evt)
-        {
-            if (oldKbdFunctionUp)
-                oldKbdFunctionUp(evt);
+        m_oldKbdFunctionUp = document.onkeyup;
+        document.onkeyup = newKeyUpHandler;
 
-            if (m_inDialog)
-                return;
-
-            if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
-                getAbsoluteSync();
-
-            if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
-                getTimeScale();
-
-            if (evt.keyCode == 75) // 'k'
-                setTimeScalePosition(true);
-
-            if (evt.keyCode == 76) // 'l'
-                setTimeScalePosition(false);
-
-            if (evt.keyCode == 83) // 's'
-                saveSyncAdjustedSubtitles();
-        }
         setInterval(function() { onCheckSubtitleTimeout(); }, 200);
-        setInterval(function() { onCheckSaveParameters(); }, 1000);
-        setInterval(function() { onCheckVideoSize(); }, 1000);
-        // Launch open file stuff
-        setTimeout(function() { openSRTFile(); }, 0 );
+        setInterval(function() { onCheckSaveParametersTimeout(); }, 1000);
+        setInterval(function() { onCheckVideoSizeTimeout(); }, 1000);
+
+        // Make sure 'run' is executed again, now that everything
+        // is initialized
+        setTimeout(function() { _this.run(); }, 0);
     }
 
     var init = function()
@@ -585,11 +571,9 @@ SubLimeLet = function(baseUrl)
                 console.log(resources[idx].url + " loaded");
 
                 if (idx+1 == resources.length)
-                    resourcesInitialized(_this);
+                    resourcesInitialized();
                 else
-                {
                     processResource(idx+1);
-                }
             }
         }
 
@@ -613,7 +597,7 @@ SubLimeLet = function(baseUrl)
             {
                 var s = document.createElement("script");
          
-                if (obj.contents)
+                if (obj.contents) // just some code we want to execute, not a file
                 {
                     s.innerHTML = obj.contents;
                     setTimeout(createLoadCallback(idx), 0);
@@ -630,31 +614,17 @@ SubLimeLet = function(baseUrl)
         processResource(0); // start resource retrieval
     }
 
-    function myBookmarkLet()
-    {
-        if (window.m_initializingBookmarklet)
-            return;
-
-        if (!window.m_initializedBookmarklet)
-        {
-            window.m_initializingBookmarklet = true;
-            initBookmarklet();
-            return;
-        }
-
-        SubLimeLet.run();
-    }
-
     this.run = function()
     {
         console.log("run");
 
         if (m_initializing)
             return;
+
         if (!m_initialized)
         {
             m_initializing = true;
-            init(this);
+            init();
             return;
         }
 
@@ -662,14 +632,14 @@ SubLimeLet = function(baseUrl)
         if (m_video)
             return;
 
-        var m_videoElements = document.getElementsByTagName("video");
-        if (m_videoElements.length < 1)
+        var videoElements = document.getElementsByTagName("video");
+        if (videoElements.length < 1)
         {
-            alert("No m_video element found on this page");
+            vex.dialog.alert("No video element found on this page");
             return;
         }
 
-        m_video = m_videoElements[0];
+        m_video = videoElements[0];
     
         var r = m_video.getBoundingClientRect();
         console.log(r);
@@ -688,8 +658,13 @@ SubLimeLet = function(baseUrl)
         m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
 
         document.body.appendChild(m_overlayDiv);
-        attachSubDiv();
-        attachMessageDiv();
+        m_overlayDiv.appendChild(m_subtitleDiv);
+        m_overlayDiv.appendChild(m_messageDiv);
+        m_subtitleDiv.innerText = "";
+        m_messageDiv.innerText = "";
+
+        // Launch open file stuff
+        setTimeout(function() { openSRTFile(); }, 0 );
     }
 }
 

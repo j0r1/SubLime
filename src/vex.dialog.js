@@ -40,7 +40,7 @@
     };
     dialog.defaultOptions = {
       callback: function(value) {},
-      afterOpen: function() {},
+//      afterOpen: function() {},
       message: 'Message',
       input: "<input name=\"vex\" type=\"hidden\" value=\"_vex-empty-value\" />",
       value: false,

@@ -35,7 +35,7 @@ Alternatively, the subtitle time `s` will be shown at video time
 	v(s) = (s-o)*f
 
 The values of `o` and `f` can be set directly, or can be calculated by matching the
-subtitles to the video at two times, pressing `k` and `l` respectively at each time.
+subtitles to the video at two times, pressing 'k' and 'l' respectively at each time.
 
 Key bindings
 ------------
@@ -59,9 +59,10 @@ make the browser window itself as large as possible (e.g. by pressing F11 or goi
 Used software
 -------------
 
- - [ JQuery ]( http://jquery.com/ )
- - [ Vex ]( http://github.hubspot.com/vex/docs/welcome/ )
+ - [ JQuery ]( http://jquery.com/ ) to make life easier
+ - [ Vex ]( http://github.hubspot.com/vex/docs/welcome/ ) for nice dialogs
  - SRT parsing from [ jquery.srt.js ]( http://v2v.cc/~j/jquery.srt/ )
+ - [ FileSaver.js ]( https://github.com/eligrey/FileSaver.js/ ) to be able to save subtitles to a file
 
 Contact
 -------
