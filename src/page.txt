@@ -61,7 +61,7 @@ Used software
 
  - [ JQuery ]( http://jquery.com/ ) to make life easier
  - [ Vex ]( http://github.hubspot.com/vex/docs/welcome/ ) for nice dialogs
- - SRT parsing from [ jquery.srt.js ]( http://v2v.cc/~j/jquery.srt/ )
+ - SRT parsing based on [ jquery.srt.js ]( http://v2v.cc/~j/jquery.srt/ )
  - [ FileSaver.js ]( https://github.com/eligrey/FileSaver.js/ ) to be able to save subtitles to a file
 
 Contact
