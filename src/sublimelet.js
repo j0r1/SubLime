@@ -20,6 +20,7 @@ SubLimeLet = function(baseUrl)
     var m_localStorageKey = null;
 
     var m_overlayDiv = null;
+    var m_haveInnerText = false;
 
     var m_generalOpenDlg = null;
 
@@ -150,11 +151,12 @@ SubLimeLet = function(baseUrl)
             m_messageTimer = null;
         }
 
-        m_messageDiv.innerText = message;
+        setMessageText(message);
+
         m_messageTimer = setTimeout(function()
         {
             m_messageTimer = null;
-            m_messageDiv.innerText = "";
+            setMessageText("");
         }, 2000);
     }
 
@@ -249,6 +251,22 @@ SubLimeLet = function(baseUrl)
         m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
     }
 
+    var setSubTitleText = function(txt)
+    {
+        if (m_haveInnerText)
+            m_subtitleDiv.innerText = txt;
+        else
+            m_subtitleDiv.innerHTML = textToHTML(txt);
+    }
+    
+    var setMessageText = function(txt)
+    {
+        if (m_haveInnerText)
+            m_messageDiv.innerText = txt;
+        else
+            m_messageDiv.innerHTML = textToHTML(txt);
+    }
+
     var onCheckSubtitleTimeout = function()
     {
         if (!m_video)
@@ -270,23 +288,42 @@ SubLimeLet = function(baseUrl)
         var currentTime = m_video.currentTime/m_timeScale + m_syncOffset;
         var num = m_subtitles.length;
 
-        for (var i = 0 ; i < num ; i++)
+        var prevObj = null;
+        for (var j = 0 ; j < num ; j++)
         {
+            // cycles through all the subtitles, starting from the one before the last shown one
+            var i = (j + m_lastShownSubIdx + num - 1)%num;
             var obj = m_subtitles[i];
             if (obj)
             {
                 if (obj.subStart < currentTime && currentTime < obj.subEnd)
                 {
+                    //console.log("Found at j = " + j);
                     if (m_lastShownSubIdx != i)
                     {
                         m_lastShownSubIdx = i;
-                        m_subtitleDiv.innerText = obj.subText;
+                        setSubTitleText(obj.subText);
                     }
                     return;
                 }
+
+                if (prevObj)
+                {
+                    if (prevObj.subEnd < currentTime && currentTime < obj.subStart)
+                    {
+                        //console.log("Found empty at j = " + j);
+                        // Definitely no subtitle to show
+                        setSubTitleText("");
+                        return;
+                    }
+                }
+
+                prevObj = obj;
             }
         }
-        m_subtitleDiv.innerText = "";
+
+        //console.log("No sub, but took a while to figure out");
+        setSubTitleText("");
     }
 
     var loadSavedParameters = function()
@@ -369,23 +406,35 @@ SubLimeLet = function(baseUrl)
                 {
                     var number = parseInt(group[0]);
                     if (isNaN(number))
+                    {
+                        //console.log("Bad number in: \n" + group.join("\n"));
                         continue; // bad line, ignore
+                    }
 
-                    var subTimes = group[1].split(' --> ');
+                    var subTimes = group[1].split('-->');
                     if (length.subTimes < 2)
+                    {
+                        //console.log("Bad timing delimiter: \n" + group.join("\n"));
                         continue; // bad line, ignore
+                    }
 
                     var startTimeStr = jQuery_2_1_0_for_vex.trim(subTimes[0]);
                     var endTimeStr = jQuery_2_1_0_for_vex.trim(subTimes[1]);
 
                     if (startTimeStr.length == 0 || endTimeStr.length == 0)
+                    {
+                        //console.log("Bad time string in: \n" + group.join("\n"));
                         continue; // bad line, ignore
+                    }
 
                     var startTime = toSeconds(startTimeStr);
                     var endTime = toSeconds(endTimeStr);
 
                     if (isNaN(startTime) || isNaN(endTime))
+                    {
+                        //console.log("Bad time number: \n" + group.join("\n"));
                         continue; // bad line, ignore
+                    }
 
                     var subTitleText = group[2];
 
@@ -646,22 +695,21 @@ SubLimeLet = function(baseUrl)
 
         m_overlayDiv = document.createElement("div");
         m_overlayDiv.setAttribute("id", "sublimevideodiv");
+        if ("innerText" in m_overlayDiv)
+            m_haveInnerText = true;
 
         m_subtitleDiv = document.createElement("div");
         m_subtitleDiv.setAttribute("id", "sublimesubtitlediv");
         m_messageDiv = document.createElement("div");
         m_messageDiv.setAttribute("id", "sublimemessagediv");
 
-        m_overlayDiv.style.width = "" + r.width + "px";
-        m_overlayDiv.style.height = "" + r.height + "px";
-        m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
-        m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
-
         document.body.appendChild(m_overlayDiv);
         m_overlayDiv.appendChild(m_subtitleDiv);
         m_overlayDiv.appendChild(m_messageDiv);
-        m_subtitleDiv.innerText = "";
-        m_messageDiv.innerText = "";
+        setSubTitleText("");
+        setMessageText("");
+
+        onCheckVideoSizeTimeout(); // set the initial position for the overlay div
 
         // Launch open file stuff
         setTimeout(function() { openSRTFile(); }, 0 );
