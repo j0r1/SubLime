@@ -253,10 +253,98 @@ SubLimeLet = function(baseUrl)
 
     var setSubTitleText = function(txt)
     {
+        /*
         if (m_haveInnerText)
             m_subtitleDiv.innerText = txt;
         else
             m_subtitleDiv.innerHTML = textToHTML(txt);
+        */
+
+        if (txt.length == 0) // in case there's no text to display
+        {
+            m_subtitleDiv.innerHTML = "";
+            return;
+        }
+
+        var htmlSrc = "";
+        var iCount = 0;
+        var bCount = 0;
+        var uCount = 0;
+        var fontCount = 0;
+
+        var lastPos = 0;
+        var idx = txt.indexOf("<");
+        var done = false;
+
+        while (idx >= 0 && !done)
+        {
+            var tagStr = txt.substr(idx, 3).toLowerCase();
+
+            if (tagStr == "<i>" || tagStr == "<b>" || tagStr == "<u>")
+            {
+                htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                htmlSrc += tagStr;
+                
+                lastPos = idx+3;
+                idx = txt.indexOf("<", lastPos);
+
+                if (tagStr == "<i>")
+                    iCount++;
+                else if (tagStr == "<u>")
+                    uCount++;
+                else if (tagStr == "<b>")
+                    bCount++;
+            }
+            else
+            {
+                tagStr = txt.substr(idx, 4).toLowerCase();
+                if (tagStr == "</i>" || tagStr == "</b>" || tagStr == "</u>")
+                {
+                    // TODO: must check counts to see if we can close!
+                    htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                    htmlSrc += tagStr;
+
+                    lastPos = idx+4;
+                    idx = txt.indexOf("<", lastPos);
+
+                    if (tagStr == "</i>")
+                        iCount--;
+                    else if (tagStr == "</u>")
+                        uCount--;
+                    else if (tagStr == "</b>")
+                        bCount--;
+                }
+                else
+                {
+                    // TODO: font colors
+
+                    // No match found, just progress towards the next
+                    idx = txt.indexOf("<", idx+1);
+                }
+            }
+        }
+
+        var rest = txt.length - lastPos;
+        if (rest > 0)
+            htmlSrc += textToHTML(txt.substr(lastPos, rest));
+
+        // Make sure all the tags are closed
+
+        function closeTags(c, s)
+        {
+            while (c > 0)
+            {
+                htmlSrc += s;
+                c--;
+            }
+        }
+
+        closeTags(iCount, "</i>");
+        closeTags(bCount, "</b>");
+        closeTags(uCount, "</u>");
+        closeTags(fontCount, "</font>");
+
+        m_subtitleDiv.innerHTML = htmlSrc;
     }
     
     var setMessageText = function(txt)
