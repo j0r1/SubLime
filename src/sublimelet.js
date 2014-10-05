@@ -598,7 +598,7 @@ SubLimeLet = function(baseUrl)
         // These will get downloaded when the rest is finished, to make sure the app doesn't
         // wait for them
         var extraResources = [
-                        { type: "link", url: "//fonts.googleapis.com/css?family=Titillium+Web:700" }
+                        { type: "link", url: "//fonts.googleapis.com/css?family=Open+Sans:800,700,400,600,300" }
                       ];
         processResource(0, extraResources);
 
