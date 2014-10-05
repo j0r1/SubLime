@@ -595,9 +595,66 @@ SubLimeLet = function(baseUrl)
         setInterval(function() { onCheckSaveParametersTimeout(); }, 1000);
         setInterval(function() { onCheckVideoSizeTimeout(); }, 1000);
 
+        // These will get downloaded when the rest is finished, to make sure the app doesn't
+        // wait for them
+        var extraResources = [
+                        { type: "link", url: "//fonts.googleapis.com/css?family=Titillium+Web:700" }
+                      ];
+        processResource(0, extraResources);
+
         // Make sure 'run' is executed again, now that everything
         // is initialized
         setTimeout(function() { _this.run(); }, 0);
+    }
+
+    var createLoadCallback = function(idx, res, finalCallback)
+    {
+        return function()
+        {
+            console.log(res[idx].url + " loaded");
+
+            if (idx+1 == res.length)
+            {
+                if (finalCallback)
+                    finalCallback();
+            }
+            else
+                processResource(idx+1, res, finalCallback);
+        }
+    }
+
+    var processResource = function(idx, res, finalCallback)
+    {
+        var obj = res[idx];
+
+        if (obj.type == "link")
+        {
+            var s = document.createElement("link");
+            
+            s.setAttribute("rel", "stylesheet");
+            s.setAttribute("href", obj.url);
+            s.onload = createLoadCallback(idx, res, finalCallback);
+
+            console.log("Loading: " + obj.url);
+
+            document.head.appendChild(s);
+        }
+        else if (obj.type == "script")
+        {
+            var s = document.createElement("script");
+     
+            if (obj.contents) // just some code we want to execute, not a file
+            {
+                s.innerHTML = obj.contents;
+                setTimeout(createLoadCallback(idx, res, finalCallback), 0);
+            }
+            else
+            {
+                s.src = obj.url;
+                s.onload = createLoadCallback(idx, res, finalCallback);
+            }
+            document.body.appendChild(s);
+        }
     }
 
     var init = function()
@@ -613,54 +670,7 @@ SubLimeLet = function(baseUrl)
                         { type: "script", url: baseUrl + "/FileSaver.js" },
                       ];
 
-        function createLoadCallback(idx)
-        {
-            return function()
-            {
-                console.log(resources[idx].url + " loaded");
-
-                if (idx+1 == resources.length)
-                    resourcesInitialized();
-                else
-                    processResource(idx+1);
-            }
-        }
-
-        function processResource(idx)
-        {
-            var obj = resources[idx];
-
-            if (obj.type == "link")
-            {
-                var s = document.createElement("link");
-                
-                s.setAttribute("rel", "stylesheet");
-                s.setAttribute("href", obj.url);
-                s.onload = createLoadCallback(idx);
-
-                console.log("Loading: " + obj.url);
-
-                document.head.appendChild(s);
-            }
-            else if (obj.type == "script")
-            {
-                var s = document.createElement("script");
-         
-                if (obj.contents) // just some code we want to execute, not a file
-                {
-                    s.innerHTML = obj.contents;
-                    setTimeout(createLoadCallback(idx), 0);
-                }
-                else
-                {
-                    s.src = obj.url;
-                    s.onload = createLoadCallback(idx);
-                }
-                document.body.appendChild(s);
-            }
-        }
-
-        processResource(0); // start resource retrieval
+        processResource(0, resources, resourcesInitialized); // start resource retrieval, can't start before these are in
     }
 
     this.run = function()
