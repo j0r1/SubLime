@@ -9,10 +9,16 @@
 	margin: auto;
 	text-align: center;
         text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
-        font-family: font-family: 'Open Sans', sans-serif;
+        /* font-family: 'Open Sans', sans-serif;
+        font-weight: 700;  */
+	 font-family: 'Titillium Web', sans-serif;
         font-weight: bold;
 	z-index: 9999;
 	pointer-events: none;
+}
+
+#sublimesubtitlediv b {
+	font-weight: bolder;
 }
 
 #sublimemessagediv {
@@ -22,7 +28,8 @@
 	top: 10px;
 	right: 10px;
         text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
-        font-family: font-family: 'Open Sans', sans-serif;
+        /*font-family: 'Open Sans', sans-serif;*/
+	font-family: 'Titillium Web', sans-serif;
         font-weight: bold;
 	z-index: 9999;
 	pointer-events: none;
@@ -33,5 +40,4 @@
 	z-index: 9999;
 	pointer-events: none;
 }
-
 

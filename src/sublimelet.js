@@ -282,44 +282,117 @@ SubLimeLet = function(baseUrl)
 
             if (tagStr == "<i>" || tagStr == "<b>" || tagStr == "<u>")
             {
-                htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
-                htmlSrc += tagStr;
-                
-                lastPos = idx+3;
-                idx = txt.indexOf("<", lastPos);
-
                 if (tagStr == "<i>")
                     iCount++;
                 else if (tagStr == "<u>")
                     uCount++;
                 else if (tagStr == "<b>")
                     bCount++;
+
+                htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                htmlSrc += tagStr;
+                
+                lastPos = idx+tagStr.length;
+                idx = txt.indexOf("<", lastPos);
+
             }
             else
             {
                 tagStr = txt.substr(idx, 4).toLowerCase();
                 if (tagStr == "</i>" || tagStr == "</b>" || tagStr == "</u>")
                 {
-                    // TODO: must check counts to see if we can close!
-                    htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
-                    htmlSrc += tagStr;
+                    var ok = false;
 
-                    lastPos = idx+4;
-                    idx = txt.indexOf("<", lastPos);
-
-                    if (tagStr == "</i>")
+                    if (tagStr == "</i>" && iCount > 0)
+                    {
                         iCount--;
-                    else if (tagStr == "</u>")
+                        ok = true;
+                    }
+                    else if (tagStr == "</u>" && uCount > 0)
+                    {
                         uCount--;
-                    else if (tagStr == "</b>")
+                        ok = true;
+                    }
+                    else if (tagStr == "</b>" && bCount > 0)
+                    {
                         bCount--;
+                        ok = true;
+                    }
+
+                    if (ok)
+                    {
+                        htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                        htmlSrc += tagStr;
+
+                        lastPos = idx+4;
+                        idx = txt.indexOf("<", lastPos);
+                    }
+                    else
+                    {
+                        // Not a valid tag (count not ok), progress towards the next
+                        idx = txt.indexOf("<", idx+1);
+                    }
                 }
                 else
                 {
-                    // TODO: font colors
+                    var fs = '<font color="';
 
-                    // No match found, just progress towards the next
-                    idx = txt.indexOf("<", idx+1);
+                    tagStr = txt.substr(idx, fs.length).toLowerCase();
+                    if (tagStr == fs)
+                    {
+                        var p = txt.indexOf('">', idx+fs.length);
+                        
+                        if (p >= 0)
+                        {
+                            // TODO: better checks on color;
+                        
+                            var colStr = "";
+                            var allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789# ";
+
+                            for (var i = idx+fs.length ; i < p ; i++)
+                            {
+                                var c = txt[i];
+                                if (allowedChars.indexOf(c) >= 0)
+                                    colStr += c;
+                                else
+                                    colStr += " ";
+                            }
+
+                            htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                            htmlSrc += '<font color="' + colStr + '">';
+
+                            lastPos = p+2;
+                            idx = txt.indexOf("<", lastPos);
+
+                            fontCount++;
+                        }
+                        else
+                        {
+                            // No match found, just progress towards the next
+                            idx = txt.indexOf("<", idx+fs.length);
+                        }
+                    }
+                    else
+                    {
+                        var endfont = "</font>";
+                        tagStr = txt.substr(idx, endfont.length).toLowerCase();
+
+                        if (tagStr == endfont && fontCount > 0)
+                        {
+                            fontCount--;
+
+                            htmlSrc += textToHTML(txt.substr(lastPos, (idx-lastPos)));
+                            htmlSrc += endfont;
+
+                            lastPos = idx+endfont.length;
+                            idx = txt.indexOf("<", lastPos);
+                        }
+                        else
+                        {
+                            // No match found, just progress towards the next
+                            idx = txt.indexOf("<", idx+1);
+                        }
+                    }
                 }
             }
         }
@@ -686,7 +759,8 @@ SubLimeLet = function(baseUrl)
         // These will get downloaded when the rest is finished, to make sure the app doesn't
         // wait for them
         var extraResources = [
-                        { type: "link", url: "//fonts.googleapis.com/css?family=Open+Sans:800,700,400,600,300" }
+                        //{ type: "link", url: "//fonts.googleapis.com/css?family=Open+Sans:800,700,400,600,300" }
+                        { type: "link", url: "//fonts.googleapis.com/css?family=Titillium+Web:900,700,700italic" }
                       ];
         processResource(0, extraResources);
 
