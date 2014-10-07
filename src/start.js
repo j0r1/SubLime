@@ -1,7 +1,8 @@
 (function() 
 {
     var x = "SubLimeStart_" + chrome.runtime.id;
-    if (!document.getElementById(x))
+    var elem = document.getElementById(x);
+    if (!elem)
     {
         var data = [ "",
     '            function mainInitialized()',
@@ -40,7 +41,17 @@
 
         data = "void((function() { " + data + "\nsubOverlayBookmarklet(); })())";
 
-        var elem = document.createElement("script");
+        elem = document.createElement("script");
+        elem.setAttribute("id", x);
+        elem.innerHTML = data;
+        document.head.appendChild(elem);
+    }
+    else
+    {
+        var data = elem.innerHTML;
+
+        document.head.removeChild(elem);
+        elem = document.createElement("script");
         elem.setAttribute("id", x);
         elem.innerHTML = data;
         document.head.appendChild(elem);

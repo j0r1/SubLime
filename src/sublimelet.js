@@ -764,6 +764,26 @@ SubLimeLet = function(baseUrl)
                       ];
         processResource(0, extraResources);
 
+        // Create the elements for showing the subtitles and the messages
+        m_overlayDiv = document.createElement("div");
+        m_overlayDiv.setAttribute("id", "sublimevideodiv");
+        if ("innerText" in m_overlayDiv)
+            m_haveInnerText = true;
+
+        m_subtitleDiv = document.createElement("div");
+        m_subtitleDiv.setAttribute("id", "sublimesubtitlediv");
+        m_messageDiv = document.createElement("div");
+        m_messageDiv.setAttribute("id", "sublimemessagediv");
+
+        document.body.appendChild(m_overlayDiv);
+        m_overlayDiv.appendChild(m_subtitleDiv);
+        m_overlayDiv.appendChild(m_messageDiv);
+        setSubTitleText("");
+        setMessageText("");
+
+        // Launch open file stuff
+        setTimeout(function() { openSRTFile(); }, 0 );
+
         // Make sure 'run' is executed again, now that everything
         // is initialized
         setTimeout(function() { _this.run(); }, 0);
@@ -849,10 +869,6 @@ SubLimeLet = function(baseUrl)
             return;
         }
 
-        // For now, only overlay on one element
-        if (m_video)
-            return;
-
         var videoElements = document.getElementsByTagName("video");
         if (videoElements.length < 1)
         {
@@ -860,31 +876,26 @@ SubLimeLet = function(baseUrl)
             return;
         }
 
-        m_video = videoElements[0];
+        if (m_video == null)
+            m_video = videoElements[0];
+        else
+        {
+            var found = false;
+            for (var i = 0 ; !found && i < videoElements.length ; i++)
+            {
+                if (m_video == videoElements[i])
+                {
+                    var newPos = (i+1)%videoElements.length;
+                    m_video = videoElements[newPos];
+                    found = true;
+                }
+            }
+
+            if (!found)
+                m_video = videoElements[0];
+        }
     
-        var r = m_video.getBoundingClientRect();
-        console.log(r);
-
-        m_overlayDiv = document.createElement("div");
-        m_overlayDiv.setAttribute("id", "sublimevideodiv");
-        if ("innerText" in m_overlayDiv)
-            m_haveInnerText = true;
-
-        m_subtitleDiv = document.createElement("div");
-        m_subtitleDiv.setAttribute("id", "sublimesubtitlediv");
-        m_messageDiv = document.createElement("div");
-        m_messageDiv.setAttribute("id", "sublimemessagediv");
-
-        document.body.appendChild(m_overlayDiv);
-        m_overlayDiv.appendChild(m_subtitleDiv);
-        m_overlayDiv.appendChild(m_messageDiv);
-        setSubTitleText("");
-        setMessageText("");
-
         onCheckVideoSizeTimeout(); // set the initial position for the overlay div
-
-        // Launch open file stuff
-        setTimeout(function() { openSRTFile(); }, 0 );
     }
 }
 
