@@ -44,8 +44,8 @@ Key bindings
  - '*' or 'g': set the subtitle time offset `o`
  - '/' or 'h': set the subtitle time rescale factor `f`
  - 'o': open another subtitle file
- - 'k': set first sync calculation point
- - 'l': set second sync calculation point
+ - 'k' or 'c': set first sync calculation point
+ - 'l' or 'v': set second sync calculation point
  - 's': save the current (possibly re-synced) subtitles to a file
 
 Full screen problems

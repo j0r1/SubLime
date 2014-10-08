@@ -27,10 +27,8 @@ SubLimeLet = function(baseUrl)
     var m_oldKbdFunctionDown = null;
     var m_oldKbdFunctionUp = null;
 
-    var toSubTime = function(S)
-    {
-        return (S - m_syncOffset)*m_timeScale;
-    }
+    var toVideoTime = function(S)                                             { return (S - m_syncOffset)*m_timeScale; }
+    var toSubtitleTime = function(V)                                          { return V/m_timeScale + m_syncOffset; }
 
     var toTimeString = function(t)
     {
@@ -70,7 +68,7 @@ SubLimeLet = function(baseUrl)
             if (obj && obj.subStart >= 0) // no negative times
             {
                 resyncedSRT += "" + i + "\n";
-                resyncedSRT += toTimeString(toSubTime(obj.subStart)) + " --> " + toTimeString(toSubTime(obj.subEnd)) + "\n";
+                resyncedSRT += toTimeString(toVideoTime(obj.subStart)) + " --> " + toTimeString(toVideoTime(obj.subEnd)) + "\n";
                 resyncedSRT += obj.subText;
 
                 var tl = obj.subText.length;
@@ -100,15 +98,27 @@ SubLimeLet = function(baseUrl)
 
     var setTimeScalePosition = function(isBase)
     {
+        /*
         if (m_lastShownSubIdx < 0 || m_lastShownSubIdx >= m_subtitles.length)
             return;
 
         var obj = m_subtitles[m_lastShownSubIdx];
         if (!obj)
             return;
+        */
 
         var currentTime = m_video.currentTime;
-        var tsObj = { subTime: obj.subStart, videoTime: currentTime };
+        var subTime = toSubtitleTime(currentTime);
+
+        if (isNaN(subTime))
+        {
+            showMessage("Error calculating subtitle time, check offset or scale factor");
+            return;
+        }
+
+        //var tsObj = { subTime: obj.subStart, videoTime: currentTime };
+        var tsObj = { subTime: subTime, videoTime: currentTime };
+
 
         var msg = "";
         if (isBase)
@@ -446,7 +456,7 @@ SubLimeLet = function(baseUrl)
             m_parametersChanged = true;
         }
 
-        var currentTime = m_video.currentTime/m_timeScale + m_syncOffset;
+        var currentTime = toSubtitleTime(m_video.currentTime);
         var num = m_subtitles.length;
 
         var prevObj = null;
@@ -694,45 +704,45 @@ SubLimeLet = function(baseUrl)
 
     var newKeyDownHandler = function(evt)
     {
+        if (!m_inDialog)
+        {
+            console.log("KeyCode = " + evt.keyCode);
+            if (evt.keyCode == 79) // 'o'
+                openSRTFile();
+            
+            if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
+                syncAdjust(-0.100, false);
+            
+            if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
+                syncAdjust(+0.100, false);
+        }
+
         if (m_oldKbdFunctionDown)
             m_oldKbdFunctionDown(evt);
-
-        if (m_inDialog)
-            return;
-
-        console.log("KeyCode = " + evt.keyCode);
-        if (evt.keyCode == 79) // 'o'
-            openSRTFile();
-        
-        if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
-            syncAdjust(-0.100, false);
-        
-        if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
-            syncAdjust(+0.100, false);
     }
 
     var newKeyUpHandler = function(evt)
     {
+        if (!m_inDialog)
+        {
+            if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
+                getAbsoluteSync();
+
+            if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
+                getTimeScale();
+
+            if (evt.keyCode == 75 || evt.keyCode == 67) // 'k' or 'c'
+                setTimeScalePosition(true);
+
+            if (evt.keyCode == 76 || evt.keyCode == 86) // 'l' or 'v'
+                setTimeScalePosition(false);
+
+            if (evt.keyCode == 83) // 's'
+                saveSyncAdjustedSubtitles();
+        }
+
         if (m_oldKbdFunctionUp)
             m_oldKbdFunctionUp(evt);
-
-        if (m_inDialog)
-            return;
-
-        if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
-            getAbsoluteSync();
-
-        if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
-            getTimeScale();
-
-        if (evt.keyCode == 75) // 'k'
-            setTimeScalePosition(true);
-
-        if (evt.keyCode == 76) // 'l'
-            setTimeScalePosition(false);
-
-        if (evt.keyCode == 83) // 's'
-            saveSyncAdjustedSubtitles();
     }
 
     var resourcesInitialized = function()
