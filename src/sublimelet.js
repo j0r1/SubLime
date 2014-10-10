@@ -7,6 +7,7 @@ SubLimeLet = function(baseUrl)
     var m_subtitles = null;
     var m_lastShownSubIdx = -1;
     var m_subtitleDiv = null;
+    var m_subtitleCleared = true;
     var m_inDialog = false;
     var m_syncOffset = 0;
     var m_timeScale = 1.0;
@@ -472,9 +473,10 @@ SubLimeLet = function(baseUrl)
                 if (obj.subStart < currentTime && currentTime < obj.subEnd)
                 {
                     //console.log("Found at j = " + j);
-                    if (m_lastShownSubIdx != i)
+                    if (m_lastShownSubIdx != i || m_subtitleCleared)
                     {
                         m_lastShownSubIdx = i;
+                        m_subtitleCleared = false;
                         setSubTitleText(obj.subText);
                     }
                     return;
@@ -486,6 +488,7 @@ SubLimeLet = function(baseUrl)
                     {
                         //console.log("Found empty at j = " + j);
                         // Definitely no subtitle to show
+                        m_subtitleCleared = true;
                         setSubTitleText("");
                         return;
                     }
@@ -496,6 +499,7 @@ SubLimeLet = function(baseUrl)
         }
 
         //console.log("No sub, but took a while to figure out");
+        m_subtitleCleared = true;
         setSubTitleText("");
     }
 
@@ -630,6 +634,7 @@ SubLimeLet = function(baseUrl)
         m_timeScaleObjectBase = null;
         m_timeScaleObjectRef = null;
         m_parametersChanged = false;
+        m_subtitleCleared = true;
 
         loadSavedParameters();
     }
