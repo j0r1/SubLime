@@ -11,6 +11,7 @@ SubLimeLet = function(baseUrl)
     var m_syncOffset = 0;
     var m_timeScale = 1.0;
     var m_messageDiv = null;
+    var m_messageText = "";
     var m_messageTimer = null;
 
     var m_timeScaleObjectBase = null;
@@ -98,14 +99,8 @@ SubLimeLet = function(baseUrl)
 
     var setTimeScalePosition = function(isBase)
     {
-        /*
-        if (m_lastShownSubIdx < 0 || m_lastShownSubIdx >= m_subtitles.length)
+        if (m_video == null || m_subtitles.length == 0)
             return;
-
-        var obj = m_subtitles[m_lastShownSubIdx];
-        if (!obj)
-            return;
-        */
 
         var currentTime = m_video.currentTime;
         var subTime = toSubtitleTime(currentTime);
@@ -116,9 +111,7 @@ SubLimeLet = function(baseUrl)
             return;
         }
 
-        //var tsObj = { subTime: obj.subStart, videoTime: currentTime };
         var tsObj = { subTime: subTime, videoTime: currentTime };
-
 
         var msg = "";
         if (isBase)
@@ -153,7 +146,7 @@ SubLimeLet = function(baseUrl)
         showMessage(msg);
     }
 
-    var showMessage = function(message)
+    var showMessage = function(message, clear)
     {
         if (m_messageTimer)
         {
@@ -161,13 +154,22 @@ SubLimeLet = function(baseUrl)
             m_messageTimer = null;
         }
 
-        setMessageText(message);
+        if (clear)
+            m_messageText = message;
+        else
+        {
+            if (m_messageText.length > 0)
+                m_messageText += "\n";
+            m_messageText += message;
+        }
+        setMessageText(m_messageText);
 
         m_messageTimer = setTimeout(function()
         {
             m_messageTimer = null;
+            m_messageText = "";
             setMessageText("");
-        }, 2000);
+        }, 4000);
     }
 
     var syncAdjust = function(dt, absolute)
@@ -179,7 +181,7 @@ SubLimeLet = function(baseUrl)
 
         m_parametersChanged = true;
 
-        showMessage("Sync offset: " + m_syncOffset.toFixed(3));
+        showMessage("Sync offset: " + m_syncOffset.toFixed(3), true);
     }   
 
     var getAbsoluteSync = function()
@@ -224,7 +226,7 @@ SubLimeLet = function(baseUrl)
                         {
                             m_timeScale = scale;
                             m_parametersChanged = true;
-                            showMessage("Sub timing will be rescaled by: " + m_timeScale.toFixed(3));
+                            showMessage("Sub timing will be rescaled by: " + m_timeScale.toFixed(3), true);
                         }
                     }
                     catch(e)
