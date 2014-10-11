@@ -47,6 +47,7 @@ Key bindings
  - 'k' or 'c': set first sync calculation point
  - 'l' or 'v': set second sync calculation point
  - 's': save the current (possibly re-synced) subtitles to a file
+ - 'Alt' + 'p': open preferences dialog
 
 Full screen problems
 --------------------

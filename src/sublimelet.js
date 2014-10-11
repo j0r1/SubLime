@@ -256,7 +256,7 @@ SubLimeLet = function(baseUrl)
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/\t/g, "    ")
-            .replace(/ /g, "&#8203;&nbsp;&#8203;")
+            .replace(/ /g, "&#8203; &#8203;")
             .replace(/\r\n|\r|\n/g, "<br />");
     }
 
@@ -753,10 +753,12 @@ SubLimeLet = function(baseUrl)
             '<ul>',
             '<li>',
             'Subtitle font size: <span id="sublimesubtitlefontsizetext">Subtitle text</span>',
+            '<br>',
             '<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
             '</li>',
             '<li>',
             'Messages font size: <span id="sublimemessagesfontsizetext">Message text</span>',
+            '<br>',
             '<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
             '</li>',
             '</ul>',
