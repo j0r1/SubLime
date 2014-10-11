@@ -32,6 +32,17 @@ SubLimeLet = function(baseUrl)
     var toVideoTime = function(S)                                             { return (S - m_syncOffset)*m_timeScale; }
     var toSubtitleTime = function(V)                                          { return V/m_timeScale + m_syncOffset; }
 
+    var m_isAltPressed = false;
+    var m_keyPreferences = 80; // 'p'
+    var m_keyOpenFile = [ 79 ]; // 'o'
+    var m_keyDownAdjust = [ 109, 68 ]; // '-' or 'd'
+    var m_keyUpAdjust = [ 107, 70 ]; // '+' or 'f'
+    var m_keyAbsoluteSync = [ 106, 71 ]; // '*' or 'g'
+    var m_keyAbsoluteScale = [ 111, 72 ]; // '/' or 'h'
+    var m_keySyncPos1 = [ 75, 67 ]; // 'k' or 'c'
+    var m_keySyncPos2 = [ 76, 86 ]; // 'l' or 'v'
+    var m_keySaveSubtitles = [ 83 ]; // 's'
+
     var toTimeString = function(t)
     {
         if (t <= 0)
@@ -671,12 +682,12 @@ SubLimeLet = function(baseUrl)
     this.onSRTFileSelected = function(files)
     {
         vex.close(m_generalOpenDlg.data().vex.id);
+        m_generalOpenDlg = null;
 
         try
         {
             if (files.length != 1)
                 throw "Precisely one file must be selected";
-
 
             var file = files[0];
 
@@ -712,18 +723,113 @@ SubLimeLet = function(baseUrl)
         });
     }
 
+    var setPreferences = function()
+    {
+        var htmlInput = [ '',
+            '<ul>',
+            '<li>',
+            'Subtitle font size: <span id="sublimesubtitlefontsizetext">Subtitle text</span>',
+            '<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
+            '</li>',
+            '<li>',
+            'Messages font size: <span id="sublimemessagesfontsizetext">Message text</span>',
+            '<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
+            '</li>',
+            '</ul>',
+            ''].join('\n');
+        var $ = jQuery_2_1_0_for_vex;
+
+        var transferStyles = function(dst, src, elems)
+        {
+            for (var i = 0 ; i < elems.length ; i++)
+            {
+                var n = elems[i];
+                var srcVal = $(src).css(n);
+                $(dst).css(n, srcVal);
+            }
+        }
+
+        vex.dialog.open({
+            contentCSS: { width: "90%" },
+            message: '<h2>Preferences</h2>',
+            input: htmlInput,
+
+            afterOpen: function()
+            {
+                console.log("afterOpen");
+
+                var subElem = document.getElementById("sublimesubtitlefontsizetext");
+                var msgElem = document.getElementById("sublimemessagesfontsizetext");
+                
+                transferStyles(subElem, m_subtitleDiv, [ "font-family", "font-weight", "color", "text-shadow", "font-size" ]);
+                transferStyles(msgElem, m_messageDiv, [ "font-family", "font-weight", "color", "text-shadow", "font-size" ]);
+                var subSize = parseInt($(subElem).css("font-size"));
+                var msgSize = parseInt($(msgElem).css("font-size"));
+
+                var subElemNum = document.getElementById("sublimesubtitlefontsize");
+                var msgElemNum = document.getElementById("sublimemessagesfontsize");
+
+                subElemNum.setAttribute("value", subSize);
+                msgElemNum.setAttribute("value", msgSize);
+
+                function getNumChangeFunction(numElem, txtElem)
+                {
+                    return function()
+                    {
+                        var val = numElem.value;
+                        $(txtElem).css("font-size", "" + val + "px");
+                    }
+                }
+
+                subElemNum.onchange = getNumChangeFunction(subElemNum, subElem);
+                msgElemNum.onchange = getNumChangeFunction(msgElemNum, msgElem);
+            },
+            callback: function(data) 
+            {
+                if (data === false) 
+                {
+                    console.log("Cancelled");
+                    return;
+                }
+                console.log("Accepted");
+
+                var subElemNum = document.getElementById("sublimesubtitlefontsize");
+                var msgElemNum = document.getElementById("sublimemessagesfontsize");
+
+                $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
+                $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
+
+                // TODO: save settings to local storage
+            }
+        });
+    }
+
+    var inList = function(l, elem)
+    {
+        var n = l.length;
+
+        for (var i = 0 ; i < n ; i++)
+        {
+            if (l[i] == elem)
+                return true;
+        }
+        return false;
+    }
+
     var newKeyDownHandler = function(evt)
     {
+        if (evt.keyCode == 18) // Alt
+            m_isAltPressed = true;
+
         if (!m_inDialog)
         {
             console.log("KeyCode = " + evt.keyCode);
-            if (evt.keyCode == 79) // 'o'
+
+            if (inList(m_keyOpenFile, evt.keyCode))
                 openSRTFile();
-            
-            if (evt.keyCode == 109 || evt.keyCode == 68) // '-' or 'd'
+            else if (inList(m_keyDownAdjust, evt.keyCode))
                 syncAdjust(-0.100, false);
-            
-            if (evt.keyCode == 107 || evt.keyCode == 70) // '+' or 'f'
+            else if (inList(m_keyUpAdjust, evt.keyCode))
                 syncAdjust(+0.100, false);
         }
 
@@ -733,21 +839,22 @@ SubLimeLet = function(baseUrl)
 
     var newKeyUpHandler = function(evt)
     {
+        if (evt.keyCode == 18) // Alt
+            m_isAltPressed = false;
+
         if (!m_inDialog)
         {
-            if (evt.keyCode == 106 || evt.keyCode == 71) // '*' or 'g'
+            if (m_isAltPressed && evt.keyCode == m_keyPreferences)
+                setPreferences();
+            else if (inList(m_keyAbsoluteSync, evt.keyCode))
                 getAbsoluteSync();
-
-            if (evt.keyCode == 111 || evt.keyCode == 72) // '/' or 'h'
+            else if (inList(m_keyAbsoluteScale, evt.keyCode))
                 getTimeScale();
-
-            if (evt.keyCode == 75 || evt.keyCode == 67) // 'k' or 'c'
+            else if (inList(m_keySyncPos1, evt.keyCode))
                 setTimeScalePosition(true);
-
-            if (evt.keyCode == 76 || evt.keyCode == 86) // 'l' or 'v'
+            else if (inList(m_keySyncPos2, evt.keyCode))
                 setTimeScalePosition(false);
-
-            if (evt.keyCode == 83) // 's'
+            else if (inList(m_keySaveSubtitles, evt.keyCode))
                 saveSyncAdjustedSubtitles();
         }
 
@@ -759,9 +866,12 @@ SubLimeLet = function(baseUrl)
     {
         console.log("Resources m_initialized");
 
+        // Make sure we lose the Alt press if we lose focus
+        window.addEventListener("blur", function(event) { m_isAltPressed = false; }, false);
+
         vex.defaultOptions.className = 'vex-theme-wireframe';
-        vex.defaultOptions.beforeOpen = function() { m_inDialog = true; }; // note: I added this beforeOpen to vex
-        vex.defaultOptions.afterClose = function() { m_inDialog = false; };
+        vex.defaultOptions.beforeOpen = function() { m_inDialog = true; m_isAltPressed = false; }; // note: I added this beforeOpen to vex
+        vex.defaultOptions.afterClose = function() { m_inDialog = false; m_isAltPressed = false; };
         
         m_initializing = false;
         m_initialized = true;
@@ -810,6 +920,8 @@ SubLimeLet = function(baseUrl)
         // Make sure 'run' is executed again, now that everything
         // is initialized
         setTimeout(function() { _this.run(); }, 0);
+
+        // TODO: load settings from local storage
     }
 
     var createLoadCallback = function(idx, res, finalCallback)
@@ -895,6 +1007,11 @@ SubLimeLet = function(baseUrl)
         var videoElements = document.getElementsByTagName("video");
         if (videoElements.length < 1)
         {
+            if (m_generalOpenDlg != null)
+            {
+                vex.close(m_generalOpenDlg.data().vex.id);
+                m_generalOpenDlg = null;
+            }
             vex.dialog.alert("No video element found on this page");
             return;
         }
