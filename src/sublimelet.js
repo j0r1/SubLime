@@ -718,8 +718,8 @@ SubLimeLet = function(baseUrl)
         m_generalOpenDlg = vex.dialog.alert(
         {   
             contentCSS: { width: "60%" },
-            message: 'How do you want to load the file?' + 
-                     '<li>Load a local SRT file: <input id="loadfile" type="file" onchange="SubLimeLet.instance.onSRTFileSelected(this.files)"></li></ul>',
+            message: [ '<h2>Load SRT subtitle file</h2>',
+                       'Load a local SRT file: <input id="loadfile" type="file" onchange="SubLimeLet.instance.onSRTFileSelected(this.files)">' ].join("\n")
         });
     }
 
@@ -775,7 +775,7 @@ SubLimeLet = function(baseUrl)
 
         vex.dialog.open({
             contentCSS: { width: "90%" },
-            message: '<h2>Preferences</h2>',
+            message: '<h2>SubLime preferences</h2>',
             input: htmlInput,
 
             afterOpen: function()
