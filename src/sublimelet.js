@@ -723,6 +723,30 @@ SubLimeLet = function(baseUrl)
         });
     }
 
+    var m_localStoragePrefKey = "SubLimePreferences"; 
+
+    var loadPreferences = function()
+    {
+        var $ = jQuery_2_1_0_for_vex;
+        if (m_localStoragePrefKey in localStorage)
+        {
+            var preferences = JSON.parse(localStorage[m_localStoragePrefKey]);
+            $(m_subtitleDiv).css("font-size", "" + preferences.subSize + "px");
+            $(m_messageDiv).css("font-size", "" + preferences.msgSize + "px");
+        }
+    }
+
+    var savePreferences = function()
+    {
+        var $ = jQuery_2_1_0_for_vex;
+        var preferences = { 
+            subSize: parseInt($(m_subtitleDiv).css("font-size")),
+            msgSize: parseInt($(m_messageDiv).css("font-size"))
+        }
+
+        localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
+    }
+
     var setPreferences = function()
     {
         var htmlInput = [ '',
@@ -799,7 +823,7 @@ SubLimeLet = function(baseUrl)
                 $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
                 $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
 
-                // TODO: save settings to local storage
+                savePreferences();
             }
         });
     }
@@ -921,7 +945,7 @@ SubLimeLet = function(baseUrl)
         // is initialized
         setTimeout(function() { _this.run(); }, 0);
 
-        // TODO: load settings from local storage
+        loadPreferences();
     }
 
     var createLoadCallback = function(idx, res, finalCallback)
