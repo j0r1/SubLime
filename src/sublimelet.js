@@ -43,6 +43,8 @@ SubLimeLet = function(baseUrl)
     var m_keySyncPos2 = [ 76, 86 ]; // 'l' or 'v'
     var m_keySaveSubtitles = [ 83 ]; // 's'
 
+    var m_usingTestSubtitle = false;
+
     var toTimeString = function(t)
     {
         if (t <= 0)
@@ -458,6 +460,8 @@ SubLimeLet = function(baseUrl)
             return;
         if (!m_subtitles)
             return;
+        if (m_usingTestSubtitle)
+            return;
 
         if (isNaN(m_syncOffset))
         {
@@ -750,18 +754,32 @@ SubLimeLet = function(baseUrl)
     var setPreferences = function()
     {
         var htmlInput = [ '',
-            '<ul>',
-            '<li>',
-            'Subtitle font size: <span id="sublimesubtitlefontsizetext">Subtitle text</span>',
-            '<br>',
-            '<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
-            '</li>',
-            '<li>',
-            'Messages font size: <span id="sublimemessagesfontsizetext">Message text</span>',
-            '<br>',
-            '<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
-            '</li>',
-            '</ul>',
+'<table border="0" width="100%">',
+'<tr>',
+'<td>',
+'Subtitle font size:</td><td> <span id="sublimesubtitlefontsizetext">Subtitle text</span>',
+'</td>',
+'<td>',
+'<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
+'</td>',
+'</tr>',
+'<tr>',
+'<td>',
+'Messages font size:</td><td> <span id="sublimemessagesfontsizetext">Message text</span>',
+'</td>',
+'<td>',
+'<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
+'</td>',
+'</tr>',
+'<tr>',
+'<td>',
+'Distance from bottom of the video (in pixels):',
+'</td>',
+'<td></td><td>',
+'<input id="sublimesubtitledistance" name="sublimesubtitledistance" type="number" min="0" max="4096"/>',
+'</td>',
+'</tr>',
+'</table>',
             ''].join('\n');
         var $ = jQuery_2_1_0_for_vex;
 
@@ -798,20 +816,45 @@ SubLimeLet = function(baseUrl)
                 subElemNum.setAttribute("value", subSize);
                 msgElemNum.setAttribute("value", msgSize);
 
-                function getNumChangeFunction(numElem, txtElem)
+                function getNumChangeFunction(numElem, txtElem, divElem)
                 {
                     return function()
                     {
                         var val = numElem.value;
                         $(txtElem).css("font-size", "" + val + "px");
+                        $(divElem).css("font-size", "" + val + "px");
                     }
                 }
 
-                subElemNum.onchange = getNumChangeFunction(subElemNum, subElem);
-                msgElemNum.onchange = getNumChangeFunction(msgElemNum, msgElem);
+                subElemNum.onchange = getNumChangeFunction(subElemNum, subElem, m_subtitleDiv);
+                msgElemNum.onchange = getNumChangeFunction(msgElemNum, msgElem, m_messageDiv);
+
+                var dist = parseInt($(m_subtitleDiv).css("bottom"));
+                var distElemNum = document.getElementById("sublimesubtitledistance");
+                
+                distElemNum.setAttribute("value", dist);
+                distElemNum.onchange = function()
+                {
+                    var val = distElemNum.value;
+                    $(m_subtitleDiv).css("bottom", "" + val + "px");
+                }
+
+                m_usingTestSubtitle = true;
+                setSubTitleText("Test subtitle");
+
+                if (m_messageTimer)
+                {
+                    clearTimeout(m_messageTimer);
+                    m_messageTimer = null;
+                }
+                setMessageText("Test message");
             },
             callback: function(data) 
             {
+                m_usingTestSubtitle = false;
+                setSubTitleText("");
+                setMessageText("");
+
                 if (data === false) 
                 {
                     console.log("Cancelled");
