@@ -574,6 +574,7 @@ SubLimeLet = function(baseUrl)
             lineGroups.push(currentGroup);
 
         m_subtitles = [ ];
+        var count = 0;
         for (var g = 0 ; g < lineGroups.length ; g++)
         {
             try // just to make sure that some unforeseen error doesn't mess everything up
@@ -619,6 +620,7 @@ SubLimeLet = function(baseUrl)
                         subTitleText += "\n" + group[i];
 
                     m_subtitles[number] = { subStart: startTime, subEnd: endTime, subText: subTitleText };
+                    count++;
                 }
             }
             catch(e)
@@ -636,6 +638,7 @@ SubLimeLet = function(baseUrl)
         m_parametersChanged = false;
         m_subtitleCleared = true;
 
+        showMessage("Loaded " + count + " subtitles");
         loadSavedParameters();
     }
 
@@ -783,14 +786,17 @@ SubLimeLet = function(baseUrl)
 
         // Create the elements for showing the subtitles and the messages
         m_overlayDiv = document.createElement("div");
-        m_overlayDiv.setAttribute("id", "sublimevideodiv");
+        m_overlayDiv.classList.add("sublimedivbase");
         if ("innerText" in m_overlayDiv)
             m_haveInnerText = true;
 
         m_subtitleDiv = document.createElement("div");
-        m_subtitleDiv.setAttribute("id", "sublimesubtitlediv");
+        m_subtitleDiv.classList.add("sublimedivbase");
+        m_subtitleDiv.classList.add("sublimesubtitle");
+
         m_messageDiv = document.createElement("div");
-        m_messageDiv.setAttribute("id", "sublimemessagediv");
+        m_messageDiv.classList.add("sublimedivbase");
+        m_messageDiv.classList.add("sublimemessage");
 
         document.body.appendChild(m_overlayDiv);
         m_overlayDiv.appendChild(m_subtitleDiv);
