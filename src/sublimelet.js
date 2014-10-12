@@ -754,32 +754,32 @@ SubLimeLet = function(baseUrl)
     var setPreferences = function()
     {
         var htmlInput = [ '',
-'<table border="0" width="100%">',
-'<tr>',
-'<td>',
-'Subtitle font size:</td><td> <span id="sublimesubtitlefontsizetext">Subtitle text</span>',
-'</td>',
-'<td>',
-'<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
-'</td>',
-'</tr>',
-'<tr>',
-'<td>',
-'Messages font size:</td><td> <span id="sublimemessagesfontsizetext">Message text</span>',
-'</td>',
-'<td>',
-'<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
-'</td>',
-'</tr>',
-'<tr>',
-'<td>',
-'Distance from bottom of the video (in pixels):',
-'</td>',
-'<td></td><td>',
-'<input id="sublimesubtitledistance" name="sublimesubtitledistance" type="number" min="0" max="4096"/>',
-'</td>',
-'</tr>',
-'</table>',
+            '<table border="0" width="100%">',
+            '<tr>',
+            '<td style="padding-right:5px;">',
+            'Subtitle&nbsp;font&nbsp;size:</td><td style="padding-right:5px;" id="sublimesubtitlefontsizetext">Subtitle&nbsp;text',
+            '</td>',
+            '<td width="100%" style="padding-right:5px;">',
+            '<input id="sublimesubtitlefontsize" name="sublimesubtitlefontsize" type="number" min="1" max="100"/>',
+            '</td>',
+            '</tr>',
+            '<tr>',
+            '<td style="padding-right:5px;">',
+            'Messages&nbsp;font&nbsp;size:</td><td style="padding-right:5px;" id="sublimemessagesfontsizetext">Message&nbsp;text',
+            '</td>',
+            '<td style="padding-right:5px;">',
+            '<input id="sublimemessagesfontsize" name="sublimemessagesfontsize" type="number" min="1" max="100"/>',
+            '</td>',
+            '</tr>',
+            '<tr>',
+            '<td colspan="2" style="padding-right:5px;">',
+            'Distance&nbsp;from&nbsp;bottom&nbsp;of&nbsp;the&nbsp;video&nbsp;(in&nbsp;pixels):',
+            '</td>',
+            '<td style="padding-right:5px;">',
+            '<input id="sublimesubtitledistance" name="sublimesubtitledistance" type="number" min="0" max="4096"/>',
+            '</td>',
+            '</tr>',
+            '</table>',
             ''].join('\n');
         var $ = jQuery_2_1_0_for_vex;
 
@@ -792,6 +792,10 @@ SubLimeLet = function(baseUrl)
                 $(dst).css(n, srcVal);
             }
         }
+
+        var originalSubSize = -1;
+        var originalMsgSize = -1;
+        var originalDistance = -1;
 
         vex.dialog.open({
             contentCSS: { width: "90%" },
@@ -809,6 +813,9 @@ SubLimeLet = function(baseUrl)
                 transferStyles(msgElem, m_messageDiv, [ "font-family", "font-weight", "color", "text-shadow", "font-size" ]);
                 var subSize = parseInt($(subElem).css("font-size"));
                 var msgSize = parseInt($(msgElem).css("font-size"));
+
+                originalSubSize = subSize;
+                originalMsgSize = msgSize;
 
                 var subElemNum = document.getElementById("sublimesubtitlefontsize");
                 var msgElemNum = document.getElementById("sublimemessagesfontsize");
@@ -831,6 +838,8 @@ SubLimeLet = function(baseUrl)
 
                 var dist = parseInt($(m_subtitleDiv).css("bottom"));
                 var distElemNum = document.getElementById("sublimesubtitledistance");
+
+                originalDistance = dist;
                 
                 distElemNum.setAttribute("value", dist);
                 distElemNum.onchange = function()
@@ -852,21 +861,27 @@ SubLimeLet = function(baseUrl)
             callback: function(data) 
             {
                 m_usingTestSubtitle = false;
+                m_lastShownSubIdx = -1; // This will make the callback look for the subtitle again
                 setSubTitleText("");
                 setMessageText("");
 
                 if (data === false) 
                 {
                     console.log("Cancelled");
+                    $(m_subtitleDiv).css("font-size", "" + originalSubSize + "px");
+                    $(m_messageDiv).css("font-size", "" + originalMsgSize + "px");
+                    $(m_subtitleDiv).css("bottom", "" + originalDistance + "px");
                     return;
                 }
                 console.log("Accepted");
 
                 var subElemNum = document.getElementById("sublimesubtitlefontsize");
                 var msgElemNum = document.getElementById("sublimemessagesfontsize");
+                var distElemNum = document.getElementById("sublimesubtitledistance");
 
                 $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
                 $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
+                $(m_subtitleDiv).css("bottom", "" + distElemNum.value + "px");
 
                 savePreferences();
             }
