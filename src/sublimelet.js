@@ -798,7 +798,7 @@ SubLimeLet = function(baseUrl)
         var originalDistance = -1;
 
         vex.dialog.open({
-            contentCSS: { width: "90%", opacity: 0.75 },
+            contentCSS: { width: "90%", "background-color": "rgba(255,255,255,0.5)" },
             message: '<h2>SubLime preferences</h2>',
             input: htmlInput,
 
