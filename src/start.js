@@ -36,7 +36,7 @@
     '                    return;',
     '                }',
     '',
-    '                SubLimeLet.run("chrome-extension://' + chrome.runtime.id + '");',
+    '                SubLimeLetRun("chrome-extension://' + chrome.runtime.id + '");',
     '            }' ].join("\n");
 
         data = "void((function() { " + data + "\nsubOverlayBookmarklet(); })())";
