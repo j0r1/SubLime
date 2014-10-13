@@ -1,8 +1,8 @@
-SubLimeLetRun = (function()
+var SubLimeLetRun = (function()
 {
     var instance = null;
 
-    SubLimeLet = function(baseUrl)
+    var SubLimeLet = function(baseUrl)
     {
         var _this = this;
         var m_initialized = false;
