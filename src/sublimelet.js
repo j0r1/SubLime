@@ -39,14 +39,26 @@ var SubLimeLetRun = (function()
 
         var m_isAltPressed = false;
         var m_keyPreferences = 80; // 'p'
-        var m_keyOpenFile = [ 79 ]; // 'o'
-        var m_keyDownAdjust = [ 109, 68 ]; // '-' or 'd'
-        var m_keyUpAdjust = [ 107, 70 ]; // '+' or 'f'
-        var m_keyAbsoluteSync = [ 106, 71 ]; // '*' or 'g'
-        var m_keyAbsoluteScale = [ 111, 72 ]; // '/' or 'h'
-        var m_keySyncPos1 = [ 75, 67 ]; // 'k' or 'c'
-        var m_keySyncPos2 = [ 76, 86 ]; // 'l' or 'v'
-        var m_keySaveSubtitles = [ 83 ]; // 's'
+
+        var m_keyOpenFileDefault = [ 79 ]; // 'o'
+        var m_keyDownAdjustDefault = [ 109, 68 ]; // '-' or 'd'
+        var m_keyUpAdjustDefault = [ 107, 70 ]; // '+' or 'f'
+        var m_keyAbsoluteSyncDefault = [ 106, 71 ]; // '*' or 'g'
+        var m_keyAbsoluteScaleDefault = [ 111, 72 ]; // '/' or 'h'
+        var m_keySyncPos1Default = [ 75, 67 ]; // 'k' or 'c'
+        var m_keySyncPos2Default = [ 76, 86 ]; // 'l' or 'v'
+        var m_keySaveSubtitlesDefault = [ 83 ]; // 's'
+
+        var copyObject = function(l)                                                { return JSON.parse(JSON.stringify(l)); }
+
+        var m_keyOpenFile = copyObject(m_keyOpenFileDefault);
+        var m_keyDownAdjust = copyObject(m_keyDownAdjustDefault);
+        var m_keyUpAdjust = copyObject(m_keyUpAdjustDefault);
+        var m_keyAbsoluteSync = copyObject(m_keyAbsoluteSyncDefault);
+        var m_keyAbsoluteScale = copyObject(m_keyAbsoluteScaleDefault);
+        var m_keySyncPos1 = copyObject(m_keySyncPos1Default);
+        var m_keySyncPos2 = copyObject(m_keySyncPos2Default);
+        var m_keySaveSubtitles = copyObject(m_keySaveSubtitlesDefault);
 
         var m_usingTestSubtitle = false;
 
@@ -739,6 +751,32 @@ var SubLimeLetRun = (function()
             });
         }
 
+        var rgbToHex = function(rgb)
+        {
+            console.log(rgb);
+
+            var idx1 = rgb.indexOf("(");
+            if (idx1 < 0)
+                return "#000000";
+            var idx2 = rgb.indexOf(")", idx1);
+            if (idx2 < 0)
+                return "#000000";
+            var s = rgb.substr(idx1+1, idx2-idx1-1).split(",");
+            if (s.length != 3)
+                return "#000000";
+
+            var ret = "#";
+            for (var i = 0 ; i  < s.length ; i++)
+            {
+                var x = s[i];
+                var y = parseInt(x).toString(16);
+                if (y.length < 2)
+                    y = "0" + y;
+                ret += y;
+            }
+            return ret;
+        }
+
         var m_localStoragePrefKey = "SubLimePreferences"; 
 
         var loadPreferences = function()
@@ -747,8 +785,10 @@ var SubLimeLetRun = (function()
             if (m_localStoragePrefKey in localStorage)
             {
                 var preferences = JSON.parse(localStorage[m_localStoragePrefKey]);
-                $(m_subtitleDiv).css("font-size", "" + preferences.subSize + "px");
-                $(m_messageDiv).css("font-size", "" + preferences.msgSize + "px");
+                try { $(m_subtitleDiv).css("font-size", "" + preferences.subSize + "px"); } catch(e) { }
+                try { $(m_messageDiv).css("font-size", "" + preferences.msgSize + "px"); } catch(e) { }
+                try { $(m_subtitleDiv).css("color", preferences.textCol); } catch(e) { }
+                try { $(m_messageDiv).css("color", preferences.textCol); } catch(e) { }
             }
         }
 
@@ -757,14 +797,21 @@ var SubLimeLetRun = (function()
             var $ = jQuery_2_1_0_for_vex;
             var preferences = { 
                 subSize: parseInt($(m_subtitleDiv).css("font-size")),
-                msgSize: parseInt($(m_messageDiv).css("font-size"))
+                msgSize: parseInt($(m_messageDiv).css("font-size")),
+                textCol: rgbToHex(getComputedStyle(m_subtitleDiv).color)
             }
 
             localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
         }
 
-        var setPreferences = function()
+        var changeKeyBindings = function()
         {
+            // TODO
+        }
+
+        var setPreferences = function()
+        {        
+            var originalTextCol = rgbToHex(getComputedStyle(m_subtitleDiv).color);
             var htmlInput = [ '',
                 '<table border="0" width="100%">',
                 '<tr>',
@@ -791,6 +838,14 @@ var SubLimeLetRun = (function()
                 '<input id="sublimesubtitledistance" name="sublimesubtitledistance" type="number" min="0" max="4096"/>',
                 '</td>',
                 '</tr>',
+                '<tr>',
+                '<td colspan="2" style="padding-right:5px;">',
+                'Text&nbsp;color',
+                '</td>',
+                '<td style="padding-right:5px;">',
+                '<input id="sublimetextcolor" name="sublimetextcolor" type="color" value="' + originalTextCol + '"/>',
+                '</td>',
+                '</tr>',
                 '</table>',
                 ''].join('\n');
             var $ = jQuery_2_1_0_for_vex;
@@ -813,6 +868,32 @@ var SubLimeLetRun = (function()
                 contentCSS: { width: "90%", "background-color": "rgba(255,255,255,0.5)" },
                 message: '<h2>SubLime preferences</h2>',
                 input: htmlInput,
+                buttons: [
+                   {
+                    text: 'OK',
+                    type: 'submit',
+                    className: 'vex-dialog-button-primary'
+                  },
+                  {
+                    text: 'Cancel',
+                    type: 'button',
+                    className: 'vex-dialog-button-secondary',
+                    click: function($vexContent, event) {
+                      $vexContent.data().vex.value = false;
+                      return vex.close($vexContent.data().vex.id);
+                    }
+                  },
+                /*
+                  {
+                      text: 'Change key bindings',
+                      type: 'button',
+                      className: 'vex-dialog-button-secondary',
+                      click:  function($vexContent, event)
+                      {
+                          changeKeyBindings();
+                      }
+                  }*/
+                ],
 
                 afterOpen: function()
                 {
@@ -835,11 +916,20 @@ var SubLimeLetRun = (function()
                     subElemNum.setAttribute("value", subSize);
                     msgElemNum.setAttribute("value", msgSize);
 
+                    function limitNumber(val, minVal, maxVal)
+                    {
+                        if (val < minVal)
+                            return minVal;
+                        if (val > maxVal)
+                            return maxVal;
+                        return val;
+                    }
+
                     function getNumChangeFunction(numElem, txtElem, divElem)
                     {
                         return function()
                         {
-                            var val = numElem.value;
+                            var val = limitNumber(parseInt(numElem.value),1,100);
                             $(txtElem).css("font-size", "" + val + "px");
                             $(divElem).css("font-size", "" + val + "px");
                         }
@@ -856,8 +946,18 @@ var SubLimeLetRun = (function()
                     distElemNum.setAttribute("value", dist);
                     distElemNum.onchange = function()
                     {
-                        var val = distElemNum.value;
+                        var val = limitNumber(parseInt(distElemNum.value), 1, 100);
                         $(m_subtitleDiv).css("bottom", "" + val + "px");
+                    }
+
+                    var colElem = document.getElementById("sublimetextcolor");
+                    colElem.onchange = function()
+                    {
+                        var val = colElem.value;
+                        $(subElem).css("color", val);
+                        $(msgElem).css("color", val);
+                        $(m_subtitleDiv).css("color", val);
+                        $(m_messageDiv).css("color", val);
                     }
 
                     m_usingTestSubtitle = true;
@@ -869,6 +969,7 @@ var SubLimeLetRun = (function()
                         m_messageTimer = null;
                     }
                     setMessageText("Test message");
+
                 },
                 callback: function(data) 
                 {
@@ -883,6 +984,8 @@ var SubLimeLetRun = (function()
                         $(m_subtitleDiv).css("font-size", "" + originalSubSize + "px");
                         $(m_messageDiv).css("font-size", "" + originalMsgSize + "px");
                         $(m_subtitleDiv).css("bottom", "" + originalDistance + "px");
+                        $(m_subtitleDiv).css("color", originalTextCol);
+                        $(m_messageDiv).css("color", originalTextCol);
                         return;
                     }
                     console.log("Accepted");
@@ -890,10 +993,13 @@ var SubLimeLetRun = (function()
                     var subElemNum = document.getElementById("sublimesubtitlefontsize");
                     var msgElemNum = document.getElementById("sublimemessagesfontsize");
                     var distElemNum = document.getElementById("sublimesubtitledistance");
+                    var colElem = document.getElementById("sublimetextcolor");
 
                     $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
                     $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
                     $(m_subtitleDiv).css("bottom", "" + distElemNum.value + "px");
+                    $(m_subtitleDiv).css("color", colElem.value);
+                    $(m_messageDiv).css("color", colElem.value);
 
                     savePreferences();
                 }
