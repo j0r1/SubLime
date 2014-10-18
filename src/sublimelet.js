@@ -33,21 +33,21 @@ var SubLimeLetRun = (function()
 
         var m_oldKbdFunctionDown = null;
         var m_oldKbdFunctionUp = null;
+        var m_oldKbdFunctionPress = null;
 
         var toVideoTime = function(S)                                             { return (S - m_syncOffset)*m_timeScale; }
         var toSubtitleTime = function(V)                                          { return V/m_timeScale + m_syncOffset; }
 
-        var m_isAltPressed = false;
         var m_keyPreferences = 80; // 'p'
 
-        var m_keyOpenFileDefault = [ 79 ]; // 'o'
-        var m_keyDownAdjustDefault = [ 109, 68 ]; // '-' or 'd'
-        var m_keyUpAdjustDefault = [ 107, 70 ]; // '+' or 'f'
-        var m_keyAbsoluteSyncDefault = [ 106, 71 ]; // '*' or 'g'
-        var m_keyAbsoluteScaleDefault = [ 111, 72 ]; // '/' or 'h'
-        var m_keySyncPos1Default = [ 75, 67 ]; // 'k' or 'c'
-        var m_keySyncPos2Default = [ 76, 86 ]; // 'l' or 'v'
-        var m_keySaveSubtitlesDefault = [ 83 ]; // 's'
+        var m_keyOpenFileDefault = [ 'o' ]; // 'o'
+        var m_keyDownAdjustDefault = [ '-', 'd' ]; // '-' or 'd'
+        var m_keyUpAdjustDefault = [ '+', 'f' ]; // '+' or 'f'
+        var m_keyAbsoluteSyncDefault = [ '*', 'g' ]; // '*' or 'g'
+        var m_keyAbsoluteScaleDefault = [ '/', 'h' ]; // '/' or 'h'
+        var m_keySyncPos1Default = [ 'k', 'c' ]; // 'k' or 'c'
+        var m_keySyncPos2Default = [ 'l', 'v' ]; // 'l' or 'v'
+        var m_keySaveSubtitlesDefault = [ 's' ]; // 's'
 
         var copyObject = function(l)                                                { return JSON.parse(JSON.stringify(l)); }
 
@@ -130,7 +130,7 @@ var SubLimeLetRun = (function()
 
         var setTimeScalePosition = function(isBase)
         {
-            if (m_video == null || m_subtitles.length == 0)
+            if (m_video == null || m_subtitles == null)
                 return;
 
             var currentTime = m_video.currentTime;
@@ -1081,73 +1081,63 @@ var SubLimeLetRun = (function()
             return false;
         }
 
-        var newKeyDownHandler = function(evt)
-        {
-            console.log(evt);
-
-            if (evt.keyCode == 18) // Alt
-                m_isAltPressed = true;
-
-            if (!m_inDialog)
-            {
-                console.log("KeyCode = " + evt.keyCode);
-
-                if (inList(m_keyOpenFile, evt.keyCode))
-                    openSRTFile();
-                else if (inList(m_keyDownAdjust, evt.keyCode))
-                    syncAdjust(-0.100, false);
-                else if (inList(m_keyUpAdjust, evt.keyCode))
-                    syncAdjust(+0.100, false);
-            }
-
-            if (m_oldKbdFunctionDown)
-                m_oldKbdFunctionDown(evt);
-        }
-
         var newKeyUpHandler = function(evt)
         {
-            if (evt.keyCode == 18) // Alt
-                m_isAltPressed = false;
-
             if (!m_inDialog)
             {
-                if (m_isAltPressed && evt.keyCode == m_keyPreferences)
+                if (evt.altKey && evt.keyCode == m_keyPreferences)
                     setPreferences();
-                else if (inList(m_keyAbsoluteSync, evt.keyCode))
-                    getAbsoluteSync();
-                else if (inList(m_keyAbsoluteScale, evt.keyCode))
-                    getTimeScale();
-                else if (inList(m_keySyncPos1, evt.keyCode))
-                    setTimeScalePosition(true);
-                else if (inList(m_keySyncPos2, evt.keyCode))
-                    setTimeScalePosition(false);
-                else if (inList(m_keySaveSubtitles, evt.keyCode))
-                    saveSyncAdjustedSubtitles();
             }
 
             if (m_oldKbdFunctionUp)
                 m_oldKbdFunctionUp(evt);
         }
 
+        var newKeyPressHandler = function(evt)
+        {
+            console.log(evt);
+            if (!m_inDialog && evt.charCode > 0)
+            {
+                var keyChar = String.fromCharCode(evt.charCode);
+
+                if (inList(m_keyOpenFile, keyChar))
+                    openSRTFile();
+                else if (inList(m_keyDownAdjust, keyChar))
+                    syncAdjust(-0.100, false);
+                else if (inList(m_keyUpAdjust, keyChar))
+                    syncAdjust(+0.100, false);
+                else if (inList(m_keyAbsoluteSync, keyChar))
+                    getAbsoluteSync();
+                else if (inList(m_keyAbsoluteScale, keyChar))
+                    getTimeScale();
+                else if (inList(m_keySyncPos1, keyChar))
+                    setTimeScalePosition(true);
+                else if (inList(m_keySyncPos2, keyChar))
+                    setTimeScalePosition(false);
+                else if (inList(m_keySaveSubtitles, keyChar))
+                    saveSyncAdjustedSubtitles();
+            }
+
+            if (m_oldKbdFunctionPress)
+                m_oldKbdFunctionPress(evt);
+        }
+
         var resourcesInitialized = function()
         {
             console.log("Resources m_initialized");
 
-            // Make sure we lose the Alt press if we lose focus
-            window.addEventListener("blur", function(event) { m_isAltPressed = false; }, false);
-
             vex.defaultOptions.className = 'vex-theme-wireframe';
-            vex.defaultOptions.beforeOpen = function() { m_inDialog = true; m_isAltPressed = false; }; // note: I added this beforeOpen to vex
-            vex.defaultOptions.afterClose = function() { m_inDialog = false; m_isAltPressed = false; };
+            vex.defaultOptions.beforeOpen = function() { m_inDialog = true; }; // note: I added this beforeOpen to vex
+            vex.defaultOptions.afterClose = function() { m_inDialog = false; };
             
             m_initializing = false;
             m_initialized = true;
 
-            m_oldKbdFunctionDown = document.onkeydown;
-            document.onkeydown = newKeyDownHandler;
-            
             m_oldKbdFunctionUp = document.onkeyup;
             document.onkeyup = newKeyUpHandler;
+
+            m_oldKbdFunctionPress = document.onkeypress;
+            document.onkeypress = newKeyPressHandler;
 
             setInterval(function() { onCheckSubtitleTimeout(); }, 200);
             setInterval(function() { onCheckSaveParametersTimeout(); }, 1000);
