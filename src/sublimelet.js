@@ -789,6 +789,14 @@ var SubLimeLetRun = (function()
                 try { $(m_messageDiv).css("font-size", "" + preferences.msgSize + "px"); } catch(e) { }
                 try { $(m_subtitleDiv).css("color", preferences.textCol); } catch(e) { }
                 try { $(m_messageDiv).css("color", preferences.textCol); } catch(e) { }
+                try { m_keyOpenFile = preferences.keyinfo["open"]; } catch(e) { }
+                try { m_keyDownAdjust = preferences.keyinfo["delaydown"]; } catch(e) { }
+                try { m_keyUpAdjust = preferences.keyinfo["delayup"]; } catch(e) { }
+                try { m_keyAbsoluteSync = preferences.keyinfo["offset"]; } catch(e) { }
+                try { m_keyAbsoluteScale = preferences.keyinfo["scale"]; } catch(e) { }
+                try { m_keySyncPos1 = preferences.keyinfo["autostart"]; } catch(e) { }
+                try { m_keySyncPos2 = preferences.keyinfo["autoend"]; } catch(e) { }
+                try { m_keySaveSubtitles = preferences.keyinfo["save"]; } catch(e) { }
             }
         }
 
@@ -798,15 +806,46 @@ var SubLimeLetRun = (function()
             var preferences = { 
                 subSize: parseInt($(m_subtitleDiv).css("font-size")),
                 msgSize: parseInt($(m_messageDiv).css("font-size")),
-                textCol: rgbToHex(getComputedStyle(m_subtitleDiv).color)
+                textCol: rgbToHex(getComputedStyle(m_subtitleDiv).color),
+                keyinfo:
+                {
+                    "open": m_keyOpenFile,
+                    "delaydown": m_keyDownAdjust,
+                    "delayup": m_keyUpAdjust,
+                    "offset": m_keyAbsoluteSync,
+                    "scale": m_keyAbsoluteScale,
+                    "autostart": m_keySyncPos1,
+                    "autoend": m_keySyncPos2,
+                    "save": m_keySaveSubtitles
+                }
             }
 
             localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
         }
 
-        var changeKeyBindings = function()
+        var changeKeyBindings = function(keyInfo)
         {
-            // TODO
+            var $ = jQuery_2_1_0_for_vex;
+            var htmlInput = [ '',
+                'TODO',
+                ''].join('\n');
+
+            vex.dialog.open({
+                contentCSS: { width: "60%" },
+                message: '<h2>Keyboard bindings</h2>',
+                input: htmlInput,
+
+                afterOpen: function()
+                {
+                },
+                callback: function(data) 
+                {
+                    if (data === false) 
+                    {
+                        return;
+                    }
+                }
+            });
         }
 
         var setPreferences = function()
@@ -863,6 +902,18 @@ var SubLimeLetRun = (function()
             var originalSubSize = -1;
             var originalMsgSize = -1;
             var originalDistance = -1;
+            var originalKeyInfo = copyObject(
+            {
+                "open": m_keyOpenFile,
+                "delaydown": m_keyDownAdjust,
+                "delayup": m_keyUpAdjust,
+                "offset": m_keyAbsoluteSync,
+                "scale": m_keyAbsoluteScale,
+                "autostart": m_keySyncPos1,
+                "autoend": m_keySyncPos2,
+                "save": m_keySaveSubtitles
+            });
+            var newKeyInfo = copyObject(originalKeyInfo);
 
             vex.dialog.open({
                 contentCSS: { width: "90%", "background-color": "rgba(255,255,255,0.5)" },
@@ -883,16 +934,15 @@ var SubLimeLetRun = (function()
                       return vex.close($vexContent.data().vex.id);
                     }
                   },
-                /*
                   {
                       text: 'Change key bindings',
                       type: 'button',
                       className: 'vex-dialog-button-secondary',
                       click:  function($vexContent, event)
                       {
-                          changeKeyBindings();
+                          changeKeyBindings(newKeyInfo); // changes the contents of newKeyInfo
                       }
-                  }*/
+                  }
                 ],
 
                 afterOpen: function()
@@ -986,6 +1036,10 @@ var SubLimeLetRun = (function()
                         $(m_subtitleDiv).css("bottom", "" + originalDistance + "px");
                         $(m_subtitleDiv).css("color", originalTextCol);
                         $(m_messageDiv).css("color", originalTextCol);
+
+                        // New keyboard handlers havent been installed yet, so they are
+                        // automatically discarded
+
                         return;
                     }
                     console.log("Accepted");
@@ -1000,6 +1054,15 @@ var SubLimeLetRun = (function()
                     $(m_subtitleDiv).css("bottom", "" + distElemNum.value + "px");
                     $(m_subtitleDiv).css("color", colElem.value);
                     $(m_messageDiv).css("color", colElem.value);
+
+                    m_keyOpenFile = newKeyInfo["open"];
+                    m_keyDownAdjust = newKeyInfo["delaydown"];
+                    m_keyUpAdjust = newKeyInfo["delayup"];
+                    m_keyAbsoluteSync = newKeyInfo["offset"];
+                    m_keyAbsoluteScale = newKeyInfo["scale"];
+                    m_keySyncPos1 = newKeyInfo["autostart"];
+                    m_keySyncPos2 = newKeyInfo["autoend"];
+                    m_keySaveSubtitles = newKeyInfo["save"];
 
                     savePreferences();
                 }
@@ -1020,6 +1083,8 @@ var SubLimeLetRun = (function()
 
         var newKeyDownHandler = function(evt)
         {
+            console.log(evt);
+
             if (evt.keyCode == 18) // Alt
                 m_isAltPressed = true;
 
