@@ -823,6 +823,49 @@ var SubLimeLetRun = (function()
             localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
         }
 
+        var grabKey = function(handler)
+        {
+            var oldKbdDown = document.onkeydown;
+            var oldKbdUp = document.onkeyup;
+            var oldKbdPress = document.onkeypress;
+
+            var dlgId = vex.dialog.open({
+                message: '<h2>Press the key you wish to use...</h2>',
+                buttons: [ vex.dialog.buttons.NO ],
+
+                afterOpen: function()
+                {
+                    document.onkeydown = null;
+                    document.onkeyup = null;
+
+                    document.onkeypress = function(evt)
+                    {
+                        if (evt.charCode == 0)
+                            return;
+                        
+                        var c = String.fromCharCode(evt.charCode);
+
+                        dlgId.data().vex.value = c;
+                        vex.close(dlgId.data().vex.id);
+                    }
+                },
+                callback: function(data) 
+                {
+                    document.onkeydown = oldKbdDown;
+                    document.onkeyup = oldKbdUp;
+                    document.onkeypress = oldKbdPress;
+
+                    if (data === false) 
+                    {
+                        setTimeout(function() { handler(false); }, 0);
+                        return;
+                    }
+
+                    setTimeout(function() { handler(data); }, 0);
+                }
+            });
+        }
+
         var changeKeyBindings = function(keyInfo)
         {
             var $ = jQuery_2_1_0_for_vex;
@@ -830,22 +873,8 @@ var SubLimeLetRun = (function()
                 'TODO',
                 ''].join('\n');
 
-            vex.dialog.open({
-                contentCSS: { width: "60%" },
-                message: '<h2>Keyboard bindings</h2>',
-                input: htmlInput,
-
-                afterOpen: function()
-                {
-                },
-                callback: function(data) 
-                {
-                    if (data === false) 
-                    {
-                        return;
-                    }
-                }
-            });
+            // TODO: just for testing
+            grabKey(function(key) { alert("" + key); }); 
         }
 
         var setPreferences = function()
