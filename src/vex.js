@@ -51,10 +51,6 @@
           vex: options
         });
 
-        if (options.beforeOpen) {
-          options.beforeOpen(options.$vexContent, options);
-        }
-
         if (options.overlayClosesOnClick) {
           options.$vexOverlay.bind('click.vex', function(e) {
             if (e.target !== this) {
@@ -67,6 +63,11 @@
         options.$vexContent = $('<div>').addClass(vex.baseClassNames.content).addClass(options.contentClassName).css(options.contentCSS).append(options.content).data({
           vex: options
         });
+
+        if (options.beforeOpen) {
+          options.beforeOpen(options.$vexContent, options);
+        }
+
         options.$vex.append(options.$vexContent);
         if (options.showCloseButton) {
           options.$closeButton = $('<div>').addClass(vex.baseClassNames.close).addClass(options.closeClassName).css(options.closeCSS).data({

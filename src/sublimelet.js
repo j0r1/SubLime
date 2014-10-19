@@ -866,15 +866,135 @@ var SubLimeLetRun = (function()
             });
         }
 
-        var changeKeyBindings = function(keyInfo)
+        var changeKeyBindings = function(keyInfoStart)
         {
             var $ = jQuery_2_1_0_for_vex;
             var htmlInput = [ '',
-                'TODO',
+                '<table border="0" width="100%" id="sublimekeybindings">',
+                '</table>',
                 ''].join('\n');
 
-            // TODO: just for testing
-            grabKey(function(key) { alert("" + key); }); 
+            var keyInfo = copyObject(keyInfoStart);
+
+            function showKeys(elem, infoName)
+            {
+                var keys = keyInfo[infoName];
+                if (keys.length == 0)
+                    elem.innerHTML = "(not bound)";
+                else
+                {
+                    var s = "'" + keys[0] + "'";
+                    for (var i = 1 ; i < keys.length ; i++)
+                    {
+                        s += ",'";
+                        s += keys[i];
+                        s += "'";
+                    }
+
+                    elem.innerHTML = s;
+                }
+            }
+
+            function getGrabFunction(elem, infoName)
+            {
+                return function()
+                {
+                    var grabDlg = grabKey(function(key)
+                    {
+                        if (key === false)
+                            return;
+
+                        for (var n in keyInfo)
+                        {
+                            if (inList(keyInfo[n], key))
+                            {
+                                vex.dialog.alert("Key is already in use");
+                                return;
+                            }
+                        }
+                
+                        keyInfo[infoName].push(key);
+                        showKeys(elem, infoName);
+                    });
+
+                    return false;
+                }
+            }
+
+            function getClearFunction(elem, infoName)
+            {
+                return function()
+                {
+                    keyInfo[infoName] = [ ];    
+                    showKeys(elem, infoName);
+
+                    return false;
+                }
+            }
+
+            vex.dialog.open({
+                contentCSS: { width: "70%" },
+                message: '<h2>Key bindings</h2>',
+                input: htmlInput,
+
+                afterOpen: function()
+                {
+                    var table = document.getElementById("sublimekeybindings");
+                    var bindings = 
+                    [
+                        { text: "Open&nbsp;file:", infoName: "open" },
+                        { text: "Decrease&nbsp;offset:", infoName: "delaydown" },
+                        { text: "Increase&nbsp;offset:", infoName: "delayup" },
+                        { text: "Set&nbsp;offset:", infoName: "offset" },
+                        { text: "Set&nbsp;scale:", infoName: "scale" },
+                        { text: "Set&nbsp;sync&nbsp;pos&nbsp;1:", infoName: "autostart" },
+                        { text: "Set&nbsp;sync&nbsp;pos&nbsp;2:", infoName: "autoend" },
+                        { text: "Save&nbsp;subtitles:", infoName: "save" },
+                    ];
+
+                    for (var i = 0 ; i < bindings.length ; i++)
+                    {
+                        var b = bindings[i];
+                        var tr = document.createElement("tr");
+                        var td = document.createElement("td");
+                        $(td).css("padding-right", "5px");
+                        td.innerHTML = b.text;
+                        tr.appendChild(td);
+
+                        var tdKeys = document.createElement("td");
+                        showKeys(tdKeys, b.infoName);
+                        tdKeys.setAttribute("width", "100%");
+                        tr.appendChild(tdKeys);
+
+                        td = document.createElement("td");
+                        var button = document.createElement("button");
+                        button.innerHTML = "Grab&nbsp;key";
+                        button.onclick = getGrabFunction(tdKeys, b.infoName);
+                        button.className = "vex-dialog-buttons vex-dialog-button vex-dialog-button-secondary";
+                        td.appendChild(button);
+                        tr.appendChild(td);
+
+                        td = document.createElement("td");
+                        button = document.createElement("button");
+                        button.innerHTML = "Clear";
+                        button.onclick = getClearFunction(tdKeys, b.infoName);
+                        button.className = "vex-dialog-buttons vex-dialog-button vex-dialog-button-secondary";
+                        td.appendChild(button);
+                        tr.appendChild(td);
+
+                        table.appendChild(tr);
+                    }
+                },
+                callback: function(data) 
+                {
+                    if (data === false)
+                        return;
+
+                    // Change the members of the original struct
+                    for (var n in keyInfoStart)
+                        keyInfoStart[n] = keyInfo[n];
+                }
+            });
         }
 
         var setPreferences = function()
@@ -1156,8 +1276,8 @@ var SubLimeLetRun = (function()
             console.log("Resources m_initialized");
 
             vex.defaultOptions.className = 'vex-theme-wireframe';
-            vex.defaultOptions.beforeOpen = function() { m_inDialog = true; }; // note: I added this beforeOpen to vex
-            vex.defaultOptions.afterClose = function() { m_inDialog = false; };
+            vex.defaultOptions.beforeOpen = function($vexContent, options) { options.origInDialog = m_inDialog; m_inDialog = true; }
+            vex.defaultOptions.afterClose = function($vexContent, options) { m_inDialog = options.origInDialog; };
             
             m_initializing = false;
             m_initialized = true;
