@@ -707,7 +707,16 @@ var SubLimeLetRun = (function()
 
             try
             {
-                var files = evt.srcElement.files;
+                var files = null;
+
+                try 
+                { 
+                    files = evt.srcElement.files; 
+                } 
+                catch(e) 
+                {
+                    files = evt.target.files;
+                }
 
                 if (files.length != 1)
                     throw "Precisely one file must be selected";
@@ -1491,3 +1500,6 @@ var SubLimeLetRun = (function()
     }
 })();
 
+// For backward compatibility
+var SubLimeLet = { }
+SubLimeLet.run = SubLimeLetRun;
