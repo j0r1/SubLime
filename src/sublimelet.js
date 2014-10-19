@@ -936,6 +936,41 @@ var SubLimeLetRun = (function()
                 contentCSS: { width: "70%" },
                 message: '<h2>Key bindings</h2>',
                 input: htmlInput,
+                buttons: [
+                   {
+                    text: 'OK',
+                    type: 'submit',
+                    className: 'vex-dialog-button-primary'
+                  },
+                  {
+                    text: 'Cancel',
+                    type: 'button',
+                    className: 'vex-dialog-button-secondary',
+                    click: function($vexContent, event) {
+                      $vexContent.data().vex.value = false;
+                      return vex.close($vexContent.data().vex.id);
+                    }
+                  },
+                  {
+                      text: 'Set defaults',
+                      type: 'button',
+                      className: 'vex-dialog-button-secondary',
+                      click:  function($vexContent, event)
+                      {
+                          keyInfo["open"] = copyObject(m_keyOpenFileDefault);
+                          keyInfo["delayup"] = copyObject(m_keyUpAdjustDefault);
+                          keyInfo["delaydown"] = copyObject(m_keyDownAdjustDefault);
+                          keyInfo["offset"] = copyObject(m_keyAbsoluteSyncDefault);
+                          keyInfo["scale"] = copyObject(m_keyAbsoluteScaleDefault);
+                          keyInfo["autostart"] = copyObject(m_keySyncPos1Default);
+                          keyInfo["autoend"] = copyObject(m_keySyncPos2Default);
+                          keyInfo["save"] = copyObject(m_keySaveSubtitlesDefault);
+                          
+                          $vexContent.data().vex.value = true;
+                          return vex.close($vexContent.data().vex.id);
+                      }
+                  }
+                ],
 
                 afterOpen: function()
                 {

@@ -37,17 +37,20 @@ Alternatively, the subtitle time `s` will be shown at video time
 The values of `o` and `f` can be set directly, or can be calculated by matching the
 subtitles to the video at two times, pressing 'k' and 'l' respectively at each time.
 
-Key bindings
+Default key bindings
 ------------
- - '+': add 100ms to the subtitle offset `o`
- - '-': subtract 100ms from the subtitle offset `o`
+ - '+' or 'f': add 100ms to the subtitle offset `o`
+ - '-' or 'd': subtract 100ms from the subtitle offset `o`
  - '*' or 'g': set the subtitle time offset `o`
  - '/' or 'h': set the subtitle time rescale factor `f`
- - 'o': open another subtitle file
  - 'k' or 'c': set first sync calculation point
  - 'l' or 'v': set second sync calculation point
+ - 'o': open another subtitle file
  - 's': save the current (possibly re-synced) subtitles to a file
  - 'Alt' + 'p': open preferences dialog
+
+Except for the key to open the preferences dialog, all key bindings are 
+configurable.
 
 Full screen problems
 --------------------
