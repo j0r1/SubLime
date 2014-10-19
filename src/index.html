@@ -96,6 +96,7 @@ body {
    padding-top: 10px;
    padding-bottom: 10px;
    background-color: white;
+   text-align: justify;
    padding: 30px; }
 
 body > *:first-child {
@@ -429,19 +430,22 @@ subtitle file is then</p>
 <p>The values of <code>o</code> and <code>f</code> can be set directly, or can be calculated by matching the
 subtitles to the video at two times, pressing 'k' and 'l' respectively at each time.</p>
 
-<h2>Key bindings</h2>
+<h2>Default key bindings</h2>
 
 <ul>
-<li>'+': add 100ms to the subtitle offset <code>o</code></li>
-<li>'-': subtract 100ms from the subtitle offset <code>o</code></li>
+<li>'+' or 'f': add 100ms to the subtitle offset <code>o</code></li>
+<li>'-' or 'd': subtract 100ms from the subtitle offset <code>o</code></li>
 <li>'*' or 'g': set the subtitle time offset <code>o</code></li>
 <li>'/' or 'h': set the subtitle time rescale factor <code>f</code></li>
-<li>'o': open another subtitle file</li>
 <li>'k' or 'c': set first sync calculation point</li>
 <li>'l' or 'v': set second sync calculation point</li>
+<li>'o': open another subtitle file</li>
 <li>'s': save the current (possibly re-synced) subtitles to a file</li>
 <li>'Alt' + 'p': open preferences dialog</li>
 </ul>
+
+<p>Except for the key to open the preferences dialog, all key bindings are 
+configurable.</p>
 
 <h2>Full screen problems</h2>
 
