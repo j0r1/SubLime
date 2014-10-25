@@ -576,6 +576,17 @@ var SubLimeLetRun = (function()
             return s;
         }
 
+        var clearSubtitleSettings = function()
+        {
+            m_lastShownSubIdx = -1;
+            m_syncOffset = 0;
+            m_timeScale = 1.0;
+            m_timeScaleObjectBase = null;
+            m_timeScaleObjectRef = null;
+            m_parametersChanged = false;
+            m_subtitleCleared = true;
+        }
+
         var onSRTDataLoaded = function(srt, name)
         {
             m_localStorageKey = name;
@@ -662,16 +673,12 @@ var SubLimeLetRun = (function()
 
     //        console.log(m_subtitles);
 
-            m_lastShownSubIdx = -1;
-            m_syncOffset = 0;
-            m_timeScale = 1.0;
-            m_timeScaleObjectBase = null;
-            m_timeScaleObjectRef = null;
-            m_parametersChanged = false;
-            m_subtitleCleared = true;
-
             showMessage("Loaded " + count + " subtitles");
+
+            clearSubtitleSettings();
             loadSavedParameters();
+
+            saveSubtitleCache();
         }
 
         var endsWith = function(s, end, caseInsensitive)
@@ -747,11 +754,49 @@ var SubLimeLetRun = (function()
 
         var openSRTFile = function()
         {
-            m_generalOpenDlg = vex.dialog.alert(
+            m_generalOpenDlg = vex.dialog.open(
             {   
                 contentCSS: { width: "60%" },
                 message: [ '<h2>Load SRT subtitle file</h2>',
-                           'Load a local SRT file: <input id="sublimeloadfile" type="file">' ].join("\n"),
+                    '<ul>',
+                    '<li">Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
+                    '</ul>'
+                             ].join("\n"),
+                buttons: [
+                  {
+                    text: 'Cancel',
+                    type: 'button',
+                    className: 'vex-dialog-button-secondary',
+                    click: function($vexContent, event) {
+                      $vexContent.data().vex.value = false;
+                      return vex.close($vexContent.data().vex.id);
+                    }
+                  },
+                  {
+                      text: 'Load last subtitle',
+                      type: 'button',
+                      className: 'vex-dialog-button-secondary',
+                      click:  function($vexContent, event)
+                      {
+                            try
+                            {
+                                if (!(m_localStorageCacheKey in localStorage))
+                                    throw "No cached subtitles found";
+
+                                loadSubtitleCache();
+                                setTimeout(function() { vex.close(m_generalOpenDlg.data().vex.id); }, 0);
+                                $vexContent.data().vex.value = true;
+                                return vex.close($vexContent.data().vex.id);
+                            }
+                            catch(err)
+                            {
+                                vex.dialog.alert("Error: " + textToHTML(err));
+                                return false;
+                            }
+                      }
+                  }
+                ],
+
                 afterOpen: function()
                 {
                     var elem = document.getElementById("sublimeloadfile");
@@ -787,6 +832,7 @@ var SubLimeLetRun = (function()
         }
 
         var m_localStoragePrefKey = "SubLimePreferences"; 
+        var m_localStorageCacheKey = "SubLimeLastSub";
 
         var loadPreferences = function()
         {
@@ -830,6 +876,35 @@ var SubLimeLetRun = (function()
             }
 
             localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
+        }
+
+        var saveSubtitleCache = function()
+        {
+            if (m_localStorageKey.length == 0 || m_subtitles.length == 0)
+                return;
+
+            var cacheObj = 
+            { 
+                "storagekey": m_localStorageKey,
+                "subtitles": m_subtitles
+            }
+
+            localStorage[m_localStorageCacheKey] = JSON.stringify(cacheObj);
+        }
+
+        var loadSubtitleCache = function()
+        {
+            if (!(m_localStorageCacheKey in localStorage))
+                return false;
+
+            var cacheObj = JSON.parse(localStorage[m_localStorageCacheKey]);
+            
+            m_localStorageKey = cacheObj["storagekey"];
+            m_subtitles = cacheObj["subtitles"];
+    
+            clearSubtitleSettings();
+            loadSavedParameters();
+            return true;
         }
 
         var grabKey = function(handler)
