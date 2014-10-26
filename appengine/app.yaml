@@ -8,4 +8,5 @@ threadsafe: no
 handlers:
 - url: /(.*)
   script: page.py
+  secure: always
 
