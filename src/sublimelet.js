@@ -761,48 +761,33 @@ var SubLimeLetRun = (function()
                 contentCSS: { width: "60%" },
                 message: [ '<h2>Load SRT subtitle file</h2>',
                     '<ul>',
-                    '<li">Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
-                    '</ul>'
-                             ].join("\n"),
-                buttons: [
-                  {
-                    text: 'Cancel',
-                    type: 'button',
-                    className: 'vex-dialog-button-secondary',
-                    click: function($vexContent, event) {
-                      $vexContent.data().vex.value = false;
-                      return vex.close($vexContent.data().vex.id);
-                    }
-                  },
-                  {
-                      text: 'Load last subtitle',
-                      type: 'button',
-                      className: 'vex-dialog-button-secondary',
-                      click:  function($vexContent, event)
-                      {
-                            try
-                            {
-                                if (!(m_localStorageCacheKey in localStorage))
-                                    throw "No cached subtitles found";
-
-                                loadSubtitleCache();
-                                setTimeout(function() { vex.close(m_generalOpenDlg.data().vex.id); }, 0);
-                                $vexContent.data().vex.value = true;
-                                return vex.close($vexContent.data().vex.id);
-                            }
-                            catch(err)
-                            {
-                                vex.dialog.alert("Error: " + textToHTML(err));
-                                return false;
-                            }
-                      }
-                  }
-                ],
+                    '<li>Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
+                    '<li>Re-load last used SRT file from cache: <button id="sublimeloadcachedsubroutines">Load</button></li>',
+                    '</ul>' ].join("\n"),
+                buttons: [ vex.dialog.buttons.NO ],
 
                 afterOpen: function($vexContent, options)
                 {
                     var elem = $vexContent.find("#sublimeloadfile")[0];
                     elem.onchange = onSRTFileSelected;
+
+                    elem = $vexContent.find("#sublimeloadcachedsubroutines")[0];
+                    elem.onclick = function()
+                    {
+                        try
+                        {
+                            if (!(m_localStorageCacheKey in localStorage))
+                                throw "No cached subtitles found";
+
+                            loadSubtitleCache();
+                            setTimeout(function() { vex.close(m_generalOpenDlg.data().vex.id); }, 0);
+                        }
+                        catch(err)
+                        {
+                            vex.dialog.alert("Error: " + textToHTML(err));
+                            return false;
+                        }
+                    }
                 }
             });
         }
