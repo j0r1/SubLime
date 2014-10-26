@@ -911,9 +911,9 @@ var SubLimeLetRun = (function()
 
         var grabKey = function(handler)
         {
-            var oldKbdDown = document.onkeydown;
-            var oldKbdUp = document.onkeyup;
-            var oldKbdPress = document.onkeypress;
+            var oldKbdDown = m_dlgIFrame.contentWindow.document.onkeydown;
+            var oldKbdUp = m_dlgIFrame.contentWindow.document.onkeyup;
+            var oldKbdPress = m_dlgIFrame.contentWindow.document.onkeypress;
 
             var dlgId = vex.dialog.open({
                 message: '<h2>Press the key you wish to use...</h2>',
@@ -921,10 +921,10 @@ var SubLimeLetRun = (function()
 
                 afterOpen: function($vexContent, options)
                 {
-                    document.onkeydown = null;
-                    document.onkeyup = null;
+                    m_dlgIFrame.contentWindow.document.onkeydown = null;
+                    m_dlgIFrame.contentWindow.document.onkeyup = null;
 
-                    document.onkeypress = function(evt)
+                    m_dlgIFrame.contentWindow.document.onkeypress = function(evt)
                     {
                         if (evt.charCode == 0)
                             return;
@@ -937,9 +937,9 @@ var SubLimeLetRun = (function()
                 },
                 callback: function(data) 
                 {
-                    document.onkeydown = oldKbdDown;
-                    document.onkeyup = oldKbdUp;
-                    document.onkeypress = oldKbdPress;
+                    m_dlgIFrame.contentWindow.document.onkeydown = oldKbdDown;
+                    m_dlgIFrame.contentWindow.document.onkeyup = oldKbdUp;
+                    m_dlgIFrame.contentWindow.document.onkeypress = oldKbdPress;
 
                     if (data === false) 
                     {
@@ -1404,7 +1404,10 @@ var SubLimeLetRun = (function()
             vex.defaultOptions.beforeOpen = function($vexContent, options) 
             {
                 if (!m_inDialog)
+                {
                     $(m_dlgIFrame).show();
+                    m_dlgIFrame.focus();
+                }
 
                 options.origInDialog = m_inDialog; 
                 m_inDialog = true; 
@@ -1414,9 +1417,20 @@ var SubLimeLetRun = (function()
             { 
                 m_inDialog = options.origInDialog; 
                 if (!m_inDialog)
+                {
                     $(m_dlgIFrame).hide();                    
+                    document.body.focus();
+                }
             };
             
+            $(m_dlgIFrame.contentWindow).bind('keyup.vex', function(event) 
+            {
+                if (event.keyCode === 27) 
+                {
+                    return vex.closeByEscape();
+                }
+            });
+
             m_initializing = false;
             m_initialized = true;
 
@@ -1538,7 +1552,7 @@ var SubLimeLetRun = (function()
             iframe.style.position = "fixed";
             iframe.style.top = "0px";
             iframe.style.left = "0px";
-            iframe.style.zIndex = 1000;
+            iframe.style.zIndex = 1110;
 
             m_dlgIFrame = iframe;
 
