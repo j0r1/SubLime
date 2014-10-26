@@ -1,6 +1,6 @@
 .sublimedivbase {
 	position: absolute;
-	z-index: 1110;
+	z-index: 1109;
 	pointer-events: none;
         text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
 	font-family: 'Titillium Web', sans-serif;
@@ -26,5 +26,17 @@
 
 .sublimesubtitle b {
 	font-weight: bolder;
+}
+
+.sublimedlgbaseclass
+{
+    font-size: 14px;
+	font-family: 'Titillium Web', sans-serif;
+}
+
+.sublimedlgbaseclass ul
+{
+    list-style-type: circle;
+    list-style-position: inside;
 }
 

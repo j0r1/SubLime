@@ -759,48 +759,33 @@ var SubLimeLetRun = (function()
                 contentCSS: { width: "60%" },
                 message: [ '<h2>Load SRT subtitle file</h2>',
                     '<ul>',
-                    '<li">Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
+                    '<li>Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
+                    '<li>Load last used SRT file from cache: <button id="sublimeloadcachedsrt">Load</button></li>',
                     '</ul>'
                              ].join("\n"),
-                buttons: [
-                  {
-                    text: 'Cancel',
-                    type: 'button',
-                    className: 'vex-dialog-button-secondary',
-                    click: function($vexContent, event) {
-                      $vexContent.data().vex.value = false;
-                      return vex.close($vexContent.data().vex.id);
-                    }
-                  },
-                  {
-                      text: 'Load last subtitle',
-                      type: 'button',
-                      className: 'vex-dialog-button-secondary',
-                      click:  function($vexContent, event)
-                      {
-                            try
-                            {
-                                if (!(m_localStorageCacheKey in localStorage))
-                                    throw "No cached subtitles found";
-
-                                loadSubtitleCache();
-                                setTimeout(function() { vex.close(m_generalOpenDlg.data().vex.id); }, 0);
-                                $vexContent.data().vex.value = true;
-                                return vex.close($vexContent.data().vex.id);
-                            }
-                            catch(err)
-                            {
-                                vex.dialog.alert("Error: " + textToHTML(err));
-                                return false;
-                            }
-                      }
-                  }
-                ],
-
+                buttons: [ vex.dialog.buttons.NO ],
                 afterOpen: function()
                 {
                     var elem = document.getElementById("sublimeloadfile");
                     elem.onchange = onSRTFileSelected;
+
+                    elem = document.getElementById("sublimeloadcachedsrt");
+                    elem.onclick = function()
+                    {
+                        try
+                        {
+                            if (!(m_localStorageCacheKey in localStorage))
+                                throw "No cached subtitles found";
+
+                            loadSubtitleCache();
+                            setTimeout(function() { vex.close(m_generalOpenDlg.data().vex.id); }, 0);
+                        }
+                        catch(err)
+                        {
+                            vex.dialog.alert("Error: " + textToHTML(err));
+                        }
+                        return false;
+                    }
                 }
             });
         }
@@ -1390,11 +1375,50 @@ var SubLimeLetRun = (function()
                 m_oldKbdFunctionPress(evt);
         }
 
+        var addButtonStyle = function()
+        {
+            // We'll use an iframe to get the default button style
+
+            var $ = jQuery_2_1_0_for_vex;
+            var iframe = document.createElement("iframe");
+            document.body.appendChild(iframe);
+
+            setTimeout(function()
+            {
+                var doc = iframe.contentWindow.document;
+                var btn = document.createElement("button");
+                doc.body.appendChild(btn);
+
+                var props = { "border": null, "padding": null, "background": null };
+            
+                for (var prop in props)
+                {
+                    var val = $(btn).css(prop);
+                    props[prop] = val;
+                }
+                console.log(props);
+
+                document.body.removeChild(iframe);
+
+                // Obtained the default settings, now add a style element
+                var s = ".sublimedlgbaseclass button { "
+                for (var prop in props)
+                    s += prop + ": " + props[prop] + ";\n";
+                s += "}\n";
+
+                var elem = document.createElement("style");
+                elem.innerHTML = s;
+                document.head.appendChild(elem);
+            }, 0);
+        }
+
         var resourcesInitialized = function()
         {
             console.log("Resources m_initialized");
 
-            vex.defaultOptions.className = 'vex-theme-wireframe';
+            addButtonStyle();
+
+            vex.defaultOptions.className = 'vex-theme-wireframe sublimedlgbaseclass';
             vex.defaultOptions.beforeOpen = function($vexContent, options) { options.origInDialog = m_inDialog; m_inDialog = true; }
             vex.defaultOptions.afterClose = function($vexContent, options) { m_inDialog = options.origInDialog; };
             
