@@ -7,6 +7,7 @@ var SubLimeLetRun = (function()
     {
         var _this = this;
         var m_dlgIFrame = null;
+        var m_dlgIFrameDoc = null;
 
         var m_initialized = false;
         var m_initializing = false;
@@ -896,9 +897,11 @@ var SubLimeLetRun = (function()
 
         var grabKey = function(handler)
         {
-            var oldKbdDown = m_dlgIFrame.contentWindow.document.onkeydown;
-            var oldKbdUp = m_dlgIFrame.contentWindow.document.onkeyup;
-            var oldKbdPress = m_dlgIFrame.contentWindow.document.onkeypress;
+            var doc = m_dlgIFrameDoc;
+
+            var oldKbdDown = doc.onkeydown;
+            var oldKbdUp = doc.onkeyup;
+            var oldKbdPress = doc.onkeypress;
 
             var dlgId = vex.dialog.open({
                 message: '<h2>Press the key you wish to use...</h2>',
@@ -906,10 +909,10 @@ var SubLimeLetRun = (function()
 
                 afterOpen: function($vexContent, options)
                 {
-                    m_dlgIFrame.contentWindow.document.onkeydown = null;
-                    m_dlgIFrame.contentWindow.document.onkeyup = null;
+                    doc.onkeydown = null;
+                    doc.onkeyup = null;
 
-                    m_dlgIFrame.contentWindow.document.onkeypress = function(evt)
+                    doc.onkeypress = function(evt)
                     {
                         if (evt.charCode == 0)
                             return;
@@ -922,9 +925,9 @@ var SubLimeLetRun = (function()
                 },
                 callback: function(data) 
                 {
-                    m_dlgIFrame.contentWindow.document.onkeydown = oldKbdDown;
-                    m_dlgIFrame.contentWindow.document.onkeyup = oldKbdUp;
-                    m_dlgIFrame.contentWindow.document.onkeypress = oldKbdPress;
+                    doc.onkeydown = oldKbdDown;
+                    doc.onkeyup = oldKbdUp;
+                    doc.onkeypress = oldKbdPress;
 
                     if (data === false) 
                     {
@@ -1378,7 +1381,7 @@ var SubLimeLetRun = (function()
             var $ = jQuery_2_1_0_for_vex;
 
             vex.defaultOptions.className = 'vex-theme-wireframe';
-            vex.defaultOptions.appendLocation = m_dlgIFrame.contentWindow.document.body;
+            vex.defaultOptions.appendLocation = m_dlgIFrameDoc.body;
             vex.defaultOptions.beforeOpen = function($vexContent, options) 
             {
                 if (!m_inDialog)
@@ -1533,8 +1536,12 @@ var SubLimeLetRun = (function()
             iframe.style.zIndex = 1110;
 
             m_dlgIFrame = iframe;
+            m_dlgIFrameDoc = iframe.contentDocument;
 
-            var iframeHead = iframe.contentWindow.document.head;
+            console.log(m_dlgIFrame);
+            console.log(m_dlgIFrameDoc);
+
+            var iframeHead = m_dlgIFrameDoc.head;
 
             var resources = [ 
                             { type: "link", url: baseUrl + "/vex.css" },
