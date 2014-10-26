@@ -123,7 +123,7 @@ var SubLimeLetRun = (function()
                 placeholder: 'newfile.srt',
                 callback: function(value) 
                 {
-                    console.log(value);
+                    //console.log(value);
                     if (value !== false)
                         saveAs(blob, value);
                 }
@@ -593,7 +593,7 @@ var SubLimeLetRun = (function()
         {
             m_localStorageKey = name;
 
-            console.log("Loaded SRT data");
+            //console.log("Loaded SRT data");
 
             var lines = srt.split('\n');
             for (var i = 0 ; i < lines.length ; i++)
@@ -794,7 +794,7 @@ var SubLimeLetRun = (function()
 
         var rgbToHex = function(rgb)
         {
-            console.log(rgb);
+            //console.log(rgb);
 
             var idx1 = rgb.indexOf("(");
             if (idx1 < 0)
@@ -1046,8 +1046,6 @@ var SubLimeLetRun = (function()
                 afterOpen: function($vexContent, options)
                 {
                     var table = $vexContent.find("#sublimekeybindings")[0];
-                    console.log('table');
-                    console.log(table);
                     var bindings = 
                     [
                         { text: "Open&nbsp;file:", infoName: "open" },
@@ -1209,8 +1207,6 @@ var SubLimeLetRun = (function()
 
                 afterOpen: function($vexContent, options)
                 {
-                    console.log("afterOpen");
-
                     var subElem = $vexContent.find("#sublimesubtitlefontsizetext")[0];
                     var msgElem = $vexContent.find("#sublimemessagesfontsizetext")[0];
                     
@@ -1292,7 +1288,6 @@ var SubLimeLetRun = (function()
 
                     if (data === false) 
                     {
-                        console.log("Cancelled");
                         $(m_subtitleDiv).css("font-size", "" + originalSubSize + "px");
                         $(m_messageDiv).css("font-size", "" + originalMsgSize + "px");
                         $(m_subtitleDiv).css("bottom", "" + originalDistance + "px");
@@ -1304,7 +1299,6 @@ var SubLimeLetRun = (function()
 
                         return;
                     }
-                    console.log("Accepted");
 
                     $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
                     $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
@@ -1352,7 +1346,6 @@ var SubLimeLetRun = (function()
 
         var newKeyPressHandler = function(evt)
         {
-            console.log(evt);
             if (!m_inDialog && evt.charCode > 0)
             {
                 var keyChar = String.fromCharCode(evt.charCode);
