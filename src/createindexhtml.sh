@@ -30,7 +30,7 @@ cat << EOF
             {
                 var s = document.createElement("script");
                 
-                s.src = "https://sub-lime.appspot.com/sublimelet.js";
+                s.src = "ORIGIN" + "/sublimelet.js";
                 s.onload = mainInitialized;
 
                 document.body.appendChild(s);
@@ -48,7 +48,7 @@ cat << EOF
                     return;
                 }
 
-                SubLimeLet.run("https://sub-lime.appspot.com");
+                SubLimeLet.run("ORIGIN");
             }
         </script>
         <script>
@@ -57,6 +57,7 @@ cat << EOF
                 var elem = document.getElementById("sublimebookmarklet");
                 var data = elem.innerHTML;
 
+		data = data.replace(/ORIGIN/g, window.location.origin);
                 data = "void((function() { " + data + "\nsubOverlayBookmarklet(); })())";
 
                 elem = document.getElementById("bookmarkletlink");
