@@ -1349,6 +1349,8 @@ var SubLimeLetRun = (function()
 
         var newKeyPressHandler = function(evt)
         {
+            console.log("Normal keypress: " + evt.charCode);
+
             if (!m_inDialog && evt.charCode > 0)
             {
                 var keyChar = String.fromCharCode(evt.charCode);
@@ -1387,7 +1389,7 @@ var SubLimeLetRun = (function()
                 if (!m_inDialog)
                 {
                     $(m_dlgIFrame).show();
-                    m_dlgIFrame.focus();
+                    m_dlgIFrame.contentWindow.focus();
                 }
 
                 options.origInDialog = m_inDialog; 
@@ -1399,8 +1401,8 @@ var SubLimeLetRun = (function()
                 m_inDialog = options.origInDialog; 
                 if (!m_inDialog)
                 {
-                    $(m_dlgIFrame).hide();                    
-                    document.body.focus();
+                    $(m_dlgIFrame).hide();
+                    window.focus();
                 }
             };
             
@@ -1536,27 +1538,35 @@ var SubLimeLetRun = (function()
             iframe.style.zIndex = 1110;
 
             m_dlgIFrame = iframe;
-            m_dlgIFrameDoc = iframe.contentDocument;
 
-            console.log(m_dlgIFrame);
-            console.log(m_dlgIFrameDoc);
+            setTimeout(function()
+            {
+                m_dlgIFrameDoc = iframe.contentWindow.document;
 
-            var iframeHead = m_dlgIFrameDoc.head;
+                m_dlgIFrameDoc.onkeypress = function(evt)
+                {
+                    console.log("iframe keypress = " + evt.charCode);
+                };
 
-            var resources = [ 
-                            { type: "link", url: baseUrl + "/vex.css" },
-                            { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
-                            { type: "link", url: baseUrl + "/vex.css", target: iframeHead},
-                            { type: "link", url: baseUrl + "/vex-theme-wireframe.css", target: iframeHead },
-                            { type: "link", url: baseUrl + "/sublime.css" },
-                            { type: "script", url: baseUrl + "/jquery.min.js" },
-                            { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
-                            { type: "script", url: baseUrl + "/vex.js" },
-                            { type: "script", url: baseUrl + "/vex.dialog.js" },
-                            { type: "script", url: baseUrl + "/FileSaver.js" },
-                          ];
+                var iframeHead = m_dlgIFrameDoc.head;
+                console.log("iframeHead");
+                console.log(iframeHead);
 
-            processResource(0, resources, resourcesInitialized); // start resource retrieval, can't start before these are in
+                var resources = [ 
+                                { type: "link", url: baseUrl + "/vex.css" },
+                                { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
+                                { type: "link", url: baseUrl + "/vex.css", target: iframeHead},
+                                { type: "link", url: baseUrl + "/vex-theme-wireframe.css", target: iframeHead },
+                                { type: "link", url: baseUrl + "/sublime.css" },
+                                { type: "script", url: baseUrl + "/jquery.min.js" },
+                                { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
+                                { type: "script", url: baseUrl + "/vex.js" },
+                                { type: "script", url: baseUrl + "/vex.dialog.js" },
+                                { type: "script", url: baseUrl + "/FileSaver.js" },
+                              ];
+
+                processResource(0, resources, resourcesInitialized); // start resource retrieval, can't start before these are in
+            }, 0);
         }
 
         this.run = function()
