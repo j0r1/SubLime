@@ -88,7 +88,8 @@
         return options.$vexContent;
       },
       getAllVexes: function() {
-        return $("." + vex.baseClassNames.vex + ":not(\"." + vex.baseClassNames.closing + "\") ." + vex.baseClassNames.content);
+      //  return $("." + vex.baseClassNames.vex + ":not(\"." + vex.baseClassNames.closing + "\") ." + vex.baseClassNames.content);
+        return $(vex.defaultOptions.appendLocation).find("." + vex.baseClassNames.vex + ":not(\"." + vex.baseClassNames.closing + "\") ." + vex.baseClassNames.content);
       },
       getVexByID: function(id) {
         return vex.getAllVexes().filter(function() {

@@ -6,6 +6,8 @@ var SubLimeLetRun = (function()
     var SubLimeLet = function(baseUrl)
     {
         var _this = this;
+        var m_dlgIFrame = null;
+
         var m_initialized = false;
         var m_initializing = false;
         var m_video = null;
@@ -797,9 +799,9 @@ var SubLimeLetRun = (function()
                   }
                 ],
 
-                afterOpen: function()
+                afterOpen: function($vexContent, options)
                 {
-                    var elem = document.getElementById("sublimeloadfile");
+                    var elem = $vexContent.find("#sublimeloadfile")[0];
                     elem.onchange = onSRTFileSelected;
                 }
             });
@@ -917,7 +919,7 @@ var SubLimeLetRun = (function()
                 message: '<h2>Press the key you wish to use...</h2>',
                 buttons: [ vex.dialog.buttons.NO ],
 
-                afterOpen: function()
+                afterOpen: function($vexContent, options)
                 {
                     document.onkeydown = null;
                     document.onkeyup = null;
@@ -1056,9 +1058,11 @@ var SubLimeLetRun = (function()
                   }
                 ],
 
-                afterOpen: function()
+                afterOpen: function($vexContent, options)
                 {
-                    var table = document.getElementById("sublimekeybindings");
+                    var table = $vexContent.find("#sublimekeybindings")[0];
+                    console.log('table');
+                    console.log(table);
                     var bindings = 
                     [
                         { text: "Open&nbsp;file:", infoName: "open" },
@@ -1119,6 +1123,11 @@ var SubLimeLetRun = (function()
         var setPreferences = function()
         {        
             var originalTextCol = rgbToHex(getComputedStyle(m_subtitleDiv).color);
+            var distElemNum = null;
+            var subElemNum = null;
+            var msgElemNum = null;
+            var colElem = null;
+
             var htmlInput = [ '',
                 '<table border="0" width="100%">',
                 '<tr>',
@@ -1213,12 +1222,12 @@ var SubLimeLetRun = (function()
                   }
                 ],
 
-                afterOpen: function()
+                afterOpen: function($vexContent, options)
                 {
                     console.log("afterOpen");
 
-                    var subElem = document.getElementById("sublimesubtitlefontsizetext");
-                    var msgElem = document.getElementById("sublimemessagesfontsizetext");
+                    var subElem = $vexContent.find("#sublimesubtitlefontsizetext")[0];
+                    var msgElem = $vexContent.find("#sublimemessagesfontsizetext")[0];
                     
                     transferStyles(subElem, m_subtitleDiv, [ "font-family", "font-weight", "color", "text-shadow", "font-size" ]);
                     transferStyles(msgElem, m_messageDiv, [ "font-family", "font-weight", "color", "text-shadow", "font-size" ]);
@@ -1228,8 +1237,8 @@ var SubLimeLetRun = (function()
                     originalSubSize = subSize;
                     originalMsgSize = msgSize;
 
-                    var subElemNum = document.getElementById("sublimesubtitlefontsize");
-                    var msgElemNum = document.getElementById("sublimemessagesfontsize");
+                    subElemNum = $vexContent.find("#sublimesubtitlefontsize")[0];
+                    msgElemNum = $vexContent.find("#sublimemessagesfontsize")[0];
 
                     subElemNum.setAttribute("value", subSize);
                     msgElemNum.setAttribute("value", msgSize);
@@ -1257,7 +1266,7 @@ var SubLimeLetRun = (function()
                     msgElemNum.onchange = getNumChangeFunction(msgElemNum, msgElem, m_messageDiv);
 
                     var dist = parseInt($(m_subtitleDiv).css("bottom"));
-                    var distElemNum = document.getElementById("sublimesubtitledistance");
+                    distElemNum = $vexContent.find("#sublimesubtitledistance")[0];
 
                     originalDistance = dist;
                     
@@ -1268,7 +1277,7 @@ var SubLimeLetRun = (function()
                         $(m_subtitleDiv).css("bottom", "" + val + "px");
                     }
 
-                    var colElem = document.getElementById("sublimetextcolor");
+                    colElem = $vexContent.find("#sublimetextcolor")[0];
                     colElem.onchange = function()
                     {
                         var val = colElem.value;
@@ -1311,11 +1320,6 @@ var SubLimeLetRun = (function()
                         return;
                     }
                     console.log("Accepted");
-
-                    var subElemNum = document.getElementById("sublimesubtitlefontsize");
-                    var msgElemNum = document.getElementById("sublimemessagesfontsize");
-                    var distElemNum = document.getElementById("sublimesubtitledistance");
-                    var colElem = document.getElementById("sublimetextcolor");
 
                     $(m_subtitleDiv).css("font-size", "" + subElemNum.value + "px");
                     $(m_messageDiv).css("font-size", "" + msgElemNum.value + "px");
@@ -1393,10 +1397,25 @@ var SubLimeLetRun = (function()
         var resourcesInitialized = function()
         {
             console.log("Resources m_initialized");
+            var $ = jQuery_2_1_0_for_vex;
 
             vex.defaultOptions.className = 'vex-theme-wireframe';
-            vex.defaultOptions.beforeOpen = function($vexContent, options) { options.origInDialog = m_inDialog; m_inDialog = true; }
-            vex.defaultOptions.afterClose = function($vexContent, options) { m_inDialog = options.origInDialog; };
+            vex.defaultOptions.appendLocation = m_dlgIFrame.contentWindow.document.body;
+            vex.defaultOptions.beforeOpen = function($vexContent, options) 
+            {
+                if (!m_inDialog)
+                    $(m_dlgIFrame).show();
+
+                options.origInDialog = m_inDialog; 
+                m_inDialog = true; 
+            };
+
+            vex.defaultOptions.afterClose = function($vexContent, options) 
+            { 
+                m_inDialog = options.origInDialog; 
+                if (!m_inDialog)
+                    $(m_dlgIFrame).hide();                    
+            };
             
             m_initializing = false;
             m_initialized = true;
@@ -1479,7 +1498,10 @@ var SubLimeLetRun = (function()
 
                 console.log("Loading: " + obj.url);
 
-                document.head.appendChild(s);
+                if ("target" in obj)
+                    obj["target"].appendChild(s);
+                else
+                    document.head.appendChild(s);
             }
             else if (obj.type == "script")
             {
@@ -1495,15 +1517,38 @@ var SubLimeLetRun = (function()
                     s.src = obj.url;
                     s.onload = createLoadCallback(idx, res, finalCallback);
                 }
-                document.body.appendChild(s);
+                if ("target" in obj)
+                    obj["target"].appendChild(s);
+                else
+                    document.body.appendChild(s);
             }
         }
 
         var init = function()
         {
+            // Note that jQuery has not been loaded here yet
+
+            var iframe = document.createElement("iframe");
+            document.body.appendChild(iframe);
+
+            iframe.width = "100%";
+            iframe.height = "100%";
+
+            iframe.style.display = "none";
+            iframe.style.position = "fixed";
+            iframe.style.top = "0px";
+            iframe.style.left = "0px";
+            iframe.style.zIndex = 1000;
+
+            m_dlgIFrame = iframe;
+
+            var iframeHead = iframe.contentWindow.document.head;
+
             var resources = [ 
                             { type: "link", url: baseUrl + "/vex.css" },
                             { type: "link", url: baseUrl + "/vex-theme-wireframe.css" },
+                            { type: "link", url: baseUrl + "/vex.css", target: iframeHead},
+                            { type: "link", url: baseUrl + "/vex-theme-wireframe.css", target: iframeHead },
                             { type: "link", url: baseUrl + "/sublime.css" },
                             { type: "script", url: baseUrl + "/jquery.min.js" },
                             { type: "script", contents: "var jQuery_2_1_0_for_vex = jQuery.noConflict(true);", url: "internal" },
