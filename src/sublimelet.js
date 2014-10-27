@@ -681,6 +681,21 @@ var SubLimeLetRun = (function()
             saveSubtitleCache();
         }
 
+        var startsWith = function(s, start, caseInsensitive)
+        {
+            if (caseInsensitive)
+            {
+                if (s.substr(0, start.length).toLowerCase() == start.toLowerCase())
+                    return true;
+            }
+            else
+            {
+                if (s.substr(0, start.length) == start)
+                    return true;
+            }
+            return false;
+        }
+
         var endsWith = function(s, end, caseInsensitive)
         {
             var startIdx = s.length - end.length;
@@ -754,13 +769,15 @@ var SubLimeLetRun = (function()
 
         var openSRTFile = function()
         {
+            var $ = jQuery_2_1_0_for_vex;
+
             m_generalOpenDlg = vex.dialog.open(
             {   
                 contentCSS: { width: "60%" },
                 message: [ '<h2>Load SRT subtitle file</h2>',
                     '<ul>',
                     '<li>Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
-                    '<li>Load last used SRT file from cache: <button id="sublimeloadcachedsrt">Load</button></li>',
+                    '<li id="sublimeloadcachedsrtlistitem">Load last used SRT file from cache: <button id="sublimeloadcachedsrt">Load</button> <span id="sublimeloadcachedsrtfilename"></span></li>',
                     '</ul>'
                              ].join("\n"),
                 buttons: [ vex.dialog.buttons.NO ],
@@ -785,6 +802,28 @@ var SubLimeLetRun = (function()
                             vex.dialog.alert("Error: " + textToHTML(err));
                         }
                         return false;
+                    }
+
+                    try
+                    {
+                        if (!(m_localStorageCacheKey in localStorage))
+                            throw "m_localStorageCacheKey not found in localStorage";
+
+                        var obj = JSON.parse(localStorage[m_localStorageCacheKey]);
+                        var name = obj.storagekey;
+
+                        if (!startsWith(name, "file://"))
+                            throw "Expected storagekey to start with file://";
+
+                        var fileName = name.substr(7);
+
+                        elem = document.getElementById("sublimeloadcachedsrtfilename");
+                        elem.innerHTML = textToHTML(fileName);
+                    }
+                    catch(e) // If anything goes wrong, we'll just hide that list item
+                    {
+                        console.log(e);
+                        $("#sublimeloadcachedsrtlistitem").hide();
                     }
                 }
             });
