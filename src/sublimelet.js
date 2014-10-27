@@ -62,6 +62,8 @@ var SubLimeLetRun = (function()
 
         var m_usingTestSubtitle = false;
 
+        var m_loadCachedSubtitleOnStart = false;
+
         var toTimeString = function(t)
         {
             if (t <= 0)
@@ -876,6 +878,7 @@ var SubLimeLetRun = (function()
                 try { m_keySyncPos1 = preferences.keyinfo["autostart"]; } catch(e) { }
                 try { m_keySyncPos2 = preferences.keyinfo["autoend"]; } catch(e) { }
                 try { m_keySaveSubtitles = preferences.keyinfo["save"]; } catch(e) { }
+                try { m_loadCachedSubtitleOnStart = preferences.loadCachedSubtitles; } catch(e) { }
             }
         }
 
@@ -896,7 +899,8 @@ var SubLimeLetRun = (function()
                     "autostart": m_keySyncPos1,
                     "autoend": m_keySyncPos2,
                     "save": m_keySaveSubtitles
-                }
+                },
+                loadCachedSubtitles: m_loadCachedSubtitleOnStart
             }
 
             localStorage[m_localStoragePrefKey] = JSON.stringify(preferences);
@@ -919,7 +923,7 @@ var SubLimeLetRun = (function()
         var loadSubtitleCache = function()
         {
             if (!(m_localStorageCacheKey in localStorage))
-                return false;
+                throw "No cached subtitles found";
 
             var cacheObj = JSON.parse(localStorage[m_localStorageCacheKey]);
             
@@ -928,7 +932,6 @@ var SubLimeLetRun = (function()
     
             clearSubtitleSettings();
             loadSavedParameters();
-            return true;
         }
 
         var grabKey = function(handler)
@@ -1171,10 +1174,18 @@ var SubLimeLetRun = (function()
                 '</tr>',
                 '<tr>',
                 '<td colspan="2" style="padding-right:5px;">',
-                'Text&nbsp;color',
+                'Text&nbsp;color:',
                 '</td>',
                 '<td style="padding-right:5px;">',
                 '<input id="sublimetextcolor" name="sublimetextcolor" type="color" value="' + originalTextCol + '"/>',
+                '</td>',
+                '</tr>',
+                '<tr>',
+                '<td colspan="2" style="padding-right:5px;">',
+                'Automatically&nbsp;load&nbsp;last&nbsp;subtitles&nbsp;on&nbsp;start:',
+                '</td>',
+                '<td style="padding-right:5px;">',
+                '<input type="checkbox" id="sublimeautoreload" value="Yes"/>',
                 '</td>',
                 '</tr>',
                 '</table>',
@@ -1312,6 +1323,8 @@ var SubLimeLetRun = (function()
                     }
                     setMessageText("Test message");
 
+                    var reloadElem = document.getElementById("sublimeautoreload");
+                    $(reloadElem).prop('checked', m_loadCachedSubtitleOnStart);
                 },
                 callback: function(data) 
                 {
@@ -1355,6 +1368,12 @@ var SubLimeLetRun = (function()
                     m_keySyncPos1 = newKeyInfo["autostart"];
                     m_keySyncPos2 = newKeyInfo["autoend"];
                     m_keySaveSubtitles = newKeyInfo["save"];
+
+                    var reloadElem = document.getElementById("sublimeautoreload");
+                    if ($(reloadElem).prop('checked'))
+                        m_loadCachedSubtitleOnStart = true;
+                    else
+                        m_loadCachedSubtitleOnStart = false;
 
                     savePreferences();
                 }
@@ -1502,14 +1521,44 @@ var SubLimeLetRun = (function()
             setSubTitleText("");
             setMessageText("");
 
-            // Launch open file stuff
-            setTimeout(function() { openSRTFile(); }, 0 );
 
             // Make sure 'run' is executed again, now that everything
             // is initialized
             setTimeout(function() { _this.run(); }, 0);
 
             loadPreferences();
+
+            var openSRTdialog = false;
+
+            if (m_loadCachedSubtitleOnStart && (m_localStorageCacheKey in localStorage))
+            {
+                try 
+                { 
+                    loadSubtitleCache(); 
+                    var fileName = m_localStorageKey; // This is set by loadSubtitleCache()
+                    if (startsWith(fileName,"file://"))
+                        fileName = fileName.substr(7);
+
+                    var autoDlg = vex.dialog.open(
+                    {
+                        contentCSS: { width: "60%" },
+                        message: 'Loaded: ' + textToHTML(fileName),
+                        buttons: [ ]
+                    });
+                    setTimeout(function() { try { vex.close(autoDlg.data().vex.id); } catch(e) { } }, 2000);
+                } 
+                catch(e) 
+                { 
+                }
+            }
+            else
+                openSRTdialog = true;
+
+            if (openSRTdialog)
+            {
+                // Just open the 'open' dialog
+                setTimeout(function() { openSRTFile(); }, 0 );
+            }
         }
 
         var createLoadCallback = function(idx, res, finalCallback)
