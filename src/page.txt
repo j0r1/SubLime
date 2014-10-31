@@ -32,8 +32,6 @@ SubLime is licensed under the MIT license:
 	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 	IN THE SOFTWARE.
 
-
-
 Subtitle sync
 -------------
 In case the subtitles from your file are not well synchronized to the time of the
@@ -73,6 +71,10 @@ will most likely disappear when clicking the button to show the video full scree
 not aware for a solution that always works for this, the best solution is probably to
 make the browser window itself as large as possible (e.g. by pressing F11 or going to
 'Presentation Mode').
+
+The source code
+---------------
+The entire source code can be [found on Bitbucket](https://bitbucket.org/jliesenborgs/sublime).
 
 Used software
 -------------
