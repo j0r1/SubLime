@@ -90,7 +90,7 @@ cat << EOF
 
 EOF
 
-markdown.py page.txt
+./markdown.py page.txt
 
 cat << EOF
 
