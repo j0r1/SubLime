@@ -1521,11 +1521,6 @@ var SubLimeLetRun = (function()
             setSubTitleText("");
             setMessageText("");
 
-
-            // Make sure 'run' is executed again, now that everything
-            // is initialized
-            setTimeout(function() { _this.run(); }, 0);
-
             loadPreferences();
 
             var openSRTdialog = false;
@@ -1559,6 +1554,10 @@ var SubLimeLetRun = (function()
                 // Just open the 'open' dialog
                 setTimeout(function() { openSRTFile(); }, 0 );
             }
+
+            // Make sure 'run' is executed again, now that everything
+            // is initialized
+            setTimeout(function() { _this.run(); }, 0);
         }
 
         var createLoadCallback = function(idx, res, finalCallback)
