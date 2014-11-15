@@ -15,6 +15,7 @@ for i in index.html \
 		vex.dialog.js \
 		vex.js \
 		FileSaver.js \
+		sublimeshot2.png \
 
 do
 	cp $i ../appengine/page/
