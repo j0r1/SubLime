@@ -1277,6 +1277,7 @@ var SubLimeLetRun = (function()
                         { text: "Set&nbsp;sync&nbsp;pos&nbsp;1:", infoName: "autostart" },
                         { text: "Set&nbsp;sync&nbsp;pos&nbsp;2:", infoName: "autoend" },
                         { text: "Save&nbsp;subtitles:", infoName: "save" },
+                        { text: "Full&nbsp;screen:", infoName: "fullscreen" },
                     ];
 
                     for (var i = 0 ; i < bindings.length ; i++)
@@ -1807,6 +1808,8 @@ var SubLimeLetRun = (function()
 
                 document.body.appendChild(m_fullScreenDiv);
                 jQuery_2_1_0_for_vex(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', onFullScreenChange);
+
+                vex.defaultOptions.appendLocation = m_fullScreenDiv;
             }
 
             loadPreferences();
