@@ -224,6 +224,7 @@ var SubLimeLetRun = (function()
         var m_loadCachedSubtitleOnStart = false;
 
         var m_fullScreenDiv = null;
+        var m_fullScreenDiv2 = null;
         var m_fullScreenCanvas = null;
         var m_glHelper = null;
         var m_fullScreen = false;
@@ -456,12 +457,21 @@ var SubLimeLetRun = (function()
             var r = m_video.getBoundingClientRect();
 
             if (m_fullScreen)
-                r = m_fullScreenDiv.getBoundingClientRect();
+                r = m_fullScreenDiv2.getBoundingClientRect();
 
             m_overlayDiv.style.width = "" + r.width + "px";
             m_overlayDiv.style.height = "" + r.height + "px";
-            m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
-            m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
+
+            if (m_fullScreen)
+            {
+                m_overlayDiv.style.top = "" + r.top + "px";
+                m_overlayDiv.style.left = "" + r.left + "px";
+            }
+            else
+            {
+                m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
+                m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
+            }
         }
 
         var setSubTitleText = function(txt)
@@ -1802,9 +1812,12 @@ var SubLimeLetRun = (function()
             {
                 m_fullScreenCanvas.style.display = "none";
              
+                m_fullScreenDiv2 = document.createElement("div");
+                m_fullScreenDiv2.appendChild(m_fullScreenCanvas);
+                m_fullScreenDiv2.appendChild(m_overlayDiv);
+
                 m_fullScreenDiv = document.createElement("div");
-                m_fullScreenDiv.appendChild(m_fullScreenCanvas);
-                m_fullScreenDiv.appendChild(m_overlayDiv);
+                m_fullScreenDiv.appendChild(m_fullScreenDiv2);
 
                 document.body.appendChild(m_fullScreenDiv);
                 jQuery_2_1_0_for_vex(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', onFullScreenChange);
