@@ -3,6 +3,163 @@ var SubLimeLetRun = (function()
 {
     var instance = null;
 
+    var GLHelper = function(canvas)
+    {
+        var _this = this; // in case we need it in a private function
+        var m_canvas = null;
+        var m_context = null;
+        var m_init = false;
+
+        var m_texture = null;
+
+        var m_fragmentShader = null;
+        var m_vertexShader = null;
+        var m_program = null;
+        var m_vertexBuffer = null;
+        var m_texCoordBuffer = null;
+
+        var m_locWinSize = null;
+        var m_locWinPos = null;
+        var m_locVidSize = null;
+
+        var m_requesting = false;
+
+        this.init = function(canvas)
+        {
+            if (m_init)
+                throw "Already initialized";
+
+            m_canvas = canvas;
+            m_context = canvas.getContext("experimental-webgl");
+
+            initWebGLContext();
+            _this.adjustViewPort();
+
+            // Do this before attach and startRender since they check this
+            m_init = true;
+        }
+
+        var loadShader = function(shaderSource, shaderType) 
+        {
+            var shader = m_context.createShader(shaderType);
+            m_context.shaderSource(shader, shaderSource);
+            m_context.compileShader(shader);
+
+            var compiled = m_context.getShaderParameter(shader, m_context.COMPILE_STATUS);
+            if (!compiled) 
+            {
+                var lastError = m_context.getShaderInfoLog(shader);
+                m_context.deleteShader(shader);
+        
+                console.log("Error compiling shader:" + lastError);
+                return null;
+            }
+
+            return shader;
+        }
+
+        var initWebGLContext = function()
+        {
+            var vertexShaderSource = [ "",
+                "attribute vec2 a_position;",
+                "attribute vec2 a_texCoord;",
+                "varying vec2 v_texCoord;",
+                "void main()",
+                "{",
+                "    v_texCoord = a_texCoord;",
+                "    gl_Position = vec4(a_position.x*2.0-1.0, -(a_position.y*2.0-1.0), 0, 1);",
+                "}" ].join("\n");
+        
+            var fragmentShaderSource = [ "",
+                "precision mediump float;",
+                "uniform sampler2D u_image;",
+                "varying vec2 v_texCoord;",
+                "",
+                "void main()",
+                "{",
+                "    gl_FragColor = texture2D(u_image, v_texCoord);",
+                "}" ].join("\n");
+
+            var vertexShader = loadShader(vertexShaderSource, m_context.VERTEX_SHADER);
+            var fragmentShader = loadShader(fragmentShaderSource, m_context.FRAGMENT_SHADER);
+
+            var program = m_context.createProgram();
+            m_context.attachShader(program, vertexShader);
+            m_context.attachShader(program, fragmentShader);
+            m_context.linkProgram(program);
+            
+            m_context.useProgram(program);
+
+            m_vertexShader = vertexShader;
+            m_fragmentShader = fragmentShader;
+            m_program = program;
+
+            var positionLocation = m_context.getAttribLocation(program, "a_position");
+            var buffer = m_context.createBuffer();
+
+            m_context.bindBuffer(m_context.ARRAY_BUFFER, buffer);
+            m_context.bufferData(m_context.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 0,0, 1,1, 1,0]), m_context.STATIC_DRAW);
+            m_context.enableVertexAttribArray(positionLocation);
+            m_context.vertexAttribPointer(positionLocation, 2, m_context.FLOAT, false, 0, 0);
+
+            m_vertexBuffer = buffer;
+
+            var texCoordLocation = m_context.getAttribLocation(program, "a_texCoord");
+            var texCoordBuffer = m_context.createBuffer();
+
+            m_context.bindBuffer(m_context.ARRAY_BUFFER, texCoordBuffer);
+            m_context.bufferData(m_context.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 0,0, 1,1, 1,0]), m_context.STATIC_DRAW);
+            m_context.enableVertexAttribArray(texCoordLocation);
+            m_context.vertexAttribPointer(texCoordLocation, 2, m_context.FLOAT, false, 0, 0);
+
+            m_texCoordBuffer = texCoordBuffer;
+
+            //m_locVidSize = m_context.getUniformLocation(program, "u_vidSize");
+            //m_locWinPos = m_context.getUniformLocation(program, "u_winPos");
+            //m_locWinSize = m_context.getUniformLocation(program, "u_winSize");
+
+            m_texture = m_context.createTexture();
+            m_context.bindTexture(m_context.TEXTURE_2D, m_texture);
+            m_context.texParameteri(m_context.TEXTURE_2D, m_context.TEXTURE_MAG_FILTER, m_context.NEAREST);
+            m_context.texParameteri(m_context.TEXTURE_2D, m_context.TEXTURE_MIN_FILTER, m_context.NEAREST);
+            m_context.texParameteri(m_context.TEXTURE_2D, m_context.TEXTURE_WRAP_S, m_context.CLAMP_TO_EDGE);
+            m_context.texParameteri(m_context.TEXTURE_2D, m_context.TEXTURE_WRAP_T, m_context.CLAMP_TO_EDGE);
+            // Make sure there's actual texture data, to prevent WebGL error messages
+            //m_context.texImage2D(m_context.TEXTURE_2D, 0, m_context.RGBA, m_context.RGBA, m_context.UNSIGNED_BYTE, m_oneByOneImage);
+        }
+
+        this.adjustViewPort = function()
+        {
+            m_context.viewport(0, 0, m_canvas.width, m_canvas.height);
+        }
+
+        this.setVideoTexture = function(videoElem)
+        {
+            m_context.viewport(0, 0, m_canvas.width, m_canvas.height);
+            m_context.clear(m_context.COLOR_BUFFER_BIT | m_context.DEPTH_BUFFER_BIT);
+            m_context.bindTexture(m_context.TEXTURE_2D, m_texture);
+            m_context.texImage2D(m_context.TEXTURE_2D, 0, m_context.RGBA, m_context.RGBA, m_context.UNSIGNED_BYTE, videoElem);
+            m_context.drawArrays(m_context.TRIANGLES, 0, 6);
+        }
+
+        this.setVideoSize = function(w, h)
+        {
+            m_context.uniform2f(m_locVidSize, w, h);
+        }
+
+        this.setWindowPosition = function(x, y)
+        {
+            m_context.uniform2f(m_locWinPos, x, y);
+        }
+
+        this.setWindowSize = function(w, h)
+        {
+            m_context.uniform2f(m_locWinSize, w, h);
+        }
+
+        _this.init(canvas);
+    }
+
     var SubLimeLet = function(baseUrl)
     {
         var _this = this;
@@ -48,6 +205,7 @@ var SubLimeLetRun = (function()
         var m_keySyncPos1Default = [ 'k', 'c' ]; // 'k' or 'c'
         var m_keySyncPos2Default = [ 'l', 'v' ]; // 'l' or 'v'
         var m_keySaveSubtitlesDefault = [ 's' ]; // 's'
+        var m_keyFullscreenDefault = [ 'F' ];
 
         var copyObject = function(l)                                                { return JSON.parse(JSON.stringify(l)); }
 
@@ -59,10 +217,17 @@ var SubLimeLetRun = (function()
         var m_keySyncPos1 = copyObject(m_keySyncPos1Default);
         var m_keySyncPos2 = copyObject(m_keySyncPos2Default);
         var m_keySaveSubtitles = copyObject(m_keySaveSubtitlesDefault);
+        var m_keyFullscreen = copyObject(m_keyFullscreenDefault);
 
         var m_usingTestSubtitle = false;
 
         var m_loadCachedSubtitleOnStart = false;
+
+        var m_fullScreenDiv = null;
+        var m_fullScreenCanvas = null;
+        var m_glHelper = null;
+        var m_fullScreen = false;
+        var m_fullScreenUpdateTimer = null;
 
         var toTimeString = function(t)
         {
@@ -289,6 +454,9 @@ var SubLimeLetRun = (function()
                 return;
 
             var r = m_video.getBoundingClientRect();
+
+            if (m_fullScreen)
+                r = m_fullScreenDiv.getBoundingClientRect();
 
             m_overlayDiv.style.width = "" + r.width + "px";
             m_overlayDiv.style.height = "" + r.height + "px";
@@ -878,7 +1046,18 @@ var SubLimeLetRun = (function()
                 try { m_keySyncPos1 = preferences.keyinfo["autostart"]; } catch(e) { }
                 try { m_keySyncPos2 = preferences.keyinfo["autoend"]; } catch(e) { }
                 try { m_keySaveSubtitles = preferences.keyinfo["save"]; } catch(e) { }
+                try { m_keyFullscreen = preferences.keyinfo["fullscreen"]; } catch(e) { }
                 try { m_loadCachedSubtitleOnStart = preferences.loadCachedSubtitles; } catch(e) { }
+
+                if (m_keyOpenFile === undefined) m_keyOpenFile = m_keyOpenFileDefault;
+                if (m_keyDownAdjust === undefined) m_keyDownAdjust = m_keyDownAdjustDefault;
+                if (m_keyUpAdjust === undefined) m_keyUpAdjust = m_keyUpAdjustDefault;
+                if (m_keyAbsoluteSync === undefined) m_keyAbsoluteSync = m_keyAbsoluteSyncDefault;
+                if (m_keyAbsoluteScale === undefined) m_keyAbsoluteScale = m_keyAbsoluteScaleDefault;
+                if (m_keySyncPos1 === undefined) m_keySyncPos1 = m_keySyncPos1Default;
+                if (m_keySyncPos2 === undefined) m_keySyncPos2 = m_keySyncPos2Default;
+                if (m_keySaveSubtitles === undefined) m_keySaveSubtitles = m_keySaveSubtitlesDefault;
+                if (m_keyFullscreen === undefined) m_keyFullscreen = m_keyFullscreenDefault;
             }
         }
 
@@ -898,7 +1077,8 @@ var SubLimeLetRun = (function()
                     "scale": m_keyAbsoluteScale,
                     "autostart": m_keySyncPos1,
                     "autoend": m_keySyncPos2,
-                    "save": m_keySaveSubtitles
+                    "save": m_keySaveSubtitles,
+                    "fullscreen": m_keyFullscreen
                 },
                 loadCachedSubtitles: m_loadCachedSubtitleOnStart
             }
@@ -1076,6 +1256,7 @@ var SubLimeLetRun = (function()
                           keyInfo["autostart"] = copyObject(m_keySyncPos1Default);
                           keyInfo["autoend"] = copyObject(m_keySyncPos2Default);
                           keyInfo["save"] = copyObject(m_keySaveSubtitlesDefault);
+                          keyInfo["fullscreen"] = copyObject(m_keyFullscreenDefault);
                           
                           $vexContent.data().vex.value = true;
                           return vex.close($vexContent.data().vex.id);
@@ -1214,7 +1395,8 @@ var SubLimeLetRun = (function()
                 "scale": m_keyAbsoluteScale,
                 "autostart": m_keySyncPos1,
                 "autoend": m_keySyncPos2,
-                "save": m_keySaveSubtitles
+                "save": m_keySaveSubtitles,
+                "fullscreen": m_keyFullscreen
             });
             var newKeyInfo = copyObject(originalKeyInfo);
 
@@ -1368,6 +1550,7 @@ var SubLimeLetRun = (function()
                     m_keySyncPos1 = newKeyInfo["autostart"];
                     m_keySyncPos2 = newKeyInfo["autoend"];
                     m_keySaveSubtitles = newKeyInfo["save"];
+                    m_keyFullscreen = newKeyInfo["fullscreen"];
 
                     var reloadElem = document.getElementById("sublimeautoreload");
                     if ($(reloadElem).prop('checked'))
@@ -1378,6 +1561,94 @@ var SubLimeLetRun = (function()
                     savePreferences();
                 }
             });
+        }
+
+        var goFullScreen = function()
+        {
+            if (m_fullScreen) // already full screen
+                return;
+
+            if (!m_glHelper)
+            {
+                vex.dialog.alert("Unable to start SubLime fullscreen mode:\nWebGL helper could not be initialized");
+                return;
+            }
+
+
+            if (m_fullScreenDiv.requestFullscreen)
+                m_fullScreenDiv.requestFullscreen();
+            else if (m_fullScreenDiv.msRequestFullscreen)
+                m_fullScreenDiv.msRequestFullscreen();
+            else if (m_fullScreenDiv.mozRequestFullScreen)
+                m_fullScreenDiv.mozRequestFullScreen();
+            else if (m_fullScreenDiv.webkitRequestFullscreen)
+                m_fullScreenDiv.webkitRequestFullscreen();
+            else
+            {
+                vex.dialog.alert("Your browser does not seem to support full screen requests");
+                return;
+            }
+
+            m_fullScreenCanvas.style.display = "";
+            m_fullScreenCanvas.width = 4;
+            m_fullScreenCanvas.height = 4;
+        }
+
+        var onFullScreenChange = function(evt)
+        {
+            console.log("onFullScreenChange");
+            
+            var elem = document.fullScreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+            if (!elem) 
+            {
+                // We've left full screen mode
+                m_fullScreen = false;
+                m_fullScreenCanvas.style.display = "none";
+                if (m_fullScreenUpdateTimer)
+                {
+                    cancelAnimationFrame(m_fullScreenUpdateTimer);
+                    m_fullScreenUpdateTimer = null;
+                    console.log("Stopped update loop");
+                }
+                return;
+            }
+
+            if (elem !== m_fullScreenDiv) // make sure it's our own canvas that is full screen
+                return;
+
+            // We've entered full screen mode
+            m_fullScreen = true;
+
+            m_fullScreenCanvas.width = screen.width;
+            m_fullScreenCanvas.height = screen.height;
+            
+            if (m_fullScreenUpdateTimer)
+                return;
+
+            var screenUpdate = function()
+            {
+                if (m_video)
+                {
+                    var w = screen.width;
+                    var h = Math.round(w*(m_video.videoHeight/m_video.videoWidth));
+
+                    if (h > screen.height)
+                    {
+                        h = screen.height;
+                        w = Math.round(h*(m_video.videoWidth/m_video.videoHeight));
+                    }
+
+                    m_fullScreenCanvas.width = w;
+                    m_fullScreenCanvas.height = h;
+
+                    m_glHelper.setVideoTexture(m_video);
+                }
+
+                m_fullScreenUpdateTimer = requestAnimationFrame(screenUpdate);
+            }
+
+            m_fullScreenUpdateTimer = requestAnimationFrame(screenUpdate);
+            console.log("Started update loop");
         }
 
         var inList = function(l, elem)
@@ -1427,6 +1698,8 @@ var SubLimeLetRun = (function()
                     setTimeScalePosition(false);
                 else if (inList(m_keySaveSubtitles, keyChar))
                     saveSyncAdjustedSubtitles();
+                else if (inList(m_keyFullscreen, keyChar))
+                    goFullScreen();
             }
 
             if (m_oldKbdFunctionPress)
@@ -1520,6 +1793,21 @@ var SubLimeLetRun = (function()
             m_overlayDiv.appendChild(m_messageDiv);
             setSubTitleText("");
             setMessageText("");
+
+            m_fullScreenCanvas = document.createElement("canvas");
+            try { m_glHelper = new GLHelper(m_fullScreenCanvas); console.log("GLHelper initialized"); } catch(e) { m_fullScreenCanvas = null; console.log("Unable to init GLHelper: " + e); }
+
+            if (m_glHelper)
+            {
+                m_fullScreenCanvas.style.display = "none";
+             
+                m_fullScreenDiv = document.createElement("div");
+                m_fullScreenDiv.appendChild(m_fullScreenCanvas);
+                m_fullScreenDiv.appendChild(m_overlayDiv);
+
+                document.body.appendChild(m_fullScreenDiv);
+                jQuery_2_1_0_for_vex(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', onFullScreenChange);
+            }
 
             loadPreferences();
 
