@@ -10,6 +10,10 @@ file over an HTML5 video element in your browser. It is available as a
 It is known to work with [YouTube](http://www.youtube.com/), [Netflix](http://www.netflix.com)
 and [vimeo](https://vimeo.com/) videos (if HTML5 video is used).
 
+In case there's more than one video on a webpage, just pressing the Chrome extension
+button again, or running the bookmarklet again, should move the subtitles to
+the next video.
+
 License and disclaimer
 ----------------------
 SubLime is licensed under the MIT license:
@@ -64,12 +68,13 @@ Default key bindings
 Except for the key to open the preferences dialog, all key bindings are 
 configurable.
 
-Full screen problems
---------------------
-Because the subtitle text is simply shown as an overlay over the video, the subtitles
-will most likely disappear when clicking the button to show the video full screen. I'm
-not aware for a solution that always works for this, the best solution is probably to
-make the browser window itself as large as possible (e.g. by pressing F11 or going to
+Full screen
+-----------
+For [YouTube](http://www.youtube.com/), [Netflix](http://www.netflix.com)
+and [vimeo](https://vimeo.com/) videos, going to full screen should preserve
+the subtitles. 
+In case of problems, it may be possible to instruct your browser to make its
+window as large as possible (e.g. by pressing F11 or going to
 'Presentation Mode').
 
 The source code
