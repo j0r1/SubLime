@@ -1509,7 +1509,7 @@ var SubLimeLetRun = (function()
         var addButtonStyle = function()
         {
             // We'll use an iframe to get the default button style
-
+            /*
             var $ = jQuery_2_1_0_for_vex;
             var iframe = document.createElement("iframe");
             document.body.appendChild(iframe);
@@ -1541,6 +1541,23 @@ var SubLimeLetRun = (function()
                 elem.innerHTML = s;
                 document.head.appendChild(elem);
             }, 0);
+            */
+            var props = 
+            { 
+                border: "2px outset rgb(221, 221, 221)", 
+                padding: "1px 6px", 
+                background: "rgb(221, 221, 221) none repeat scroll 0% 0% / auto padding-box border-box"
+            } 
+
+            // Obtained the default settings, now add a style element
+            var s = ".sublimedlgbaseclass button { "
+            for (var prop in props)
+                s += prop + ": " + props[prop] + ";\n";
+            s += "}\n";
+
+            var elem = document.createElement("style");
+            elem.innerHTML = s;
+            document.head.appendChild(elem);
         }
 
         var resourcesInitialized = function()
