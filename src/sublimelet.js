@@ -1617,6 +1617,16 @@ var SubLimeLetRun = (function()
             setMessageText("");
 
             jQuery_2_1_0_for_vex(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', onFullScreenChange);
+            
+            // Replace webkitRequestFullScreen with webkitRequestFullscreen (small 's')
+            // so the key events still work
+            var allElems = jQuery_2_1_0_for_vex("*");
+            for (var i = 0 ; i < allElems.length ; i++)
+            {
+                var elem = allElems[i];
+                if (elem.webkitRequestFullScreen && elem.webkitRequestFullscreen)
+                    elem.webkitRequestFullScreen = elem.webkitRequestFullscreen;
+            }
 
             loadPreferences();
 
