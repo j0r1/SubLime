@@ -879,6 +879,15 @@ var SubLimeLetRun = (function()
                 try { m_keySyncPos2 = preferences.keyinfo["autoend"]; } catch(e) { }
                 try { m_keySaveSubtitles = preferences.keyinfo["save"]; } catch(e) { }
                 try { m_loadCachedSubtitleOnStart = preferences.loadCachedSubtitles; } catch(e) { }
+
+                if (m_keyOpenFile === undefined) m_keyOpenFile = m_keyOpenFileDefault;
+                if (m_keyDownAdjust === undefined) m_keyDownAdjust = m_keyDownAdjustDefault;
+                if (m_keyUpAdjust === undefined) m_keyUpAdjust = m_keyUpAdjustDefault;
+                if (m_keyAbsoluteSync === undefined) m_keyAbsoluteSync = m_keyAbsoluteSyncDefault;
+                if (m_keyAbsoluteScale === undefined) m_keyAbsoluteScale = m_keyAbsoluteScaleDefault;
+                if (m_keySyncPos1 === undefined) m_keySyncPos1 = m_keySyncPos1Default;
+                if (m_keySyncPos2 === undefined) m_keySyncPos2 = m_keySyncPos2Default;
+                if (m_keySaveSubtitles === undefined) m_keySaveSubtitles = m_keySaveSubtitlesDefault;
             }
         }
 
@@ -898,7 +907,7 @@ var SubLimeLetRun = (function()
                     "scale": m_keyAbsoluteScale,
                     "autostart": m_keySyncPos1,
                     "autoend": m_keySyncPos2,
-                    "save": m_keySaveSubtitles
+                    "save": m_keySaveSubtitles,
                 },
                 loadCachedSubtitles: m_loadCachedSubtitleOnStart
             }
@@ -1214,7 +1223,7 @@ var SubLimeLetRun = (function()
                 "scale": m_keyAbsoluteScale,
                 "autostart": m_keySyncPos1,
                 "autoend": m_keySyncPos2,
-                "save": m_keySaveSubtitles
+                "save": m_keySaveSubtitles,
             });
             var newKeyInfo = copyObject(originalKeyInfo);
 
@@ -1380,6 +1389,34 @@ var SubLimeLetRun = (function()
             });
         }
 
+        var onFullScreenChange = function(evt)
+        {
+            console.log("onFullScreenChange");
+            
+            var elem = document.fullScreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+            
+            if (!elem) 
+            {
+                // We've left full screen mode
+                document.body.appendChild(m_overlayDiv);
+                return;
+            }
+            
+            // We've entered full screen mode
+            m_fullScreen = true;
+
+            if (elem.videoWidth || elem.videoHeigth)
+            {
+                // Video element itself
+                // Don't think much is possible at this point
+            }
+            else
+            {
+                // Assume it's the parent of some video element
+                elem.appendChild(m_overlayDiv);
+            }
+        }
+
         var inList = function(l, elem)
         {
             var n = l.length;
@@ -1520,6 +1557,8 @@ var SubLimeLetRun = (function()
             m_overlayDiv.appendChild(m_messageDiv);
             setSubTitleText("");
             setMessageText("");
+
+            jQuery_2_1_0_for_vex(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', onFullScreenChange);
 
             loadPreferences();
 
