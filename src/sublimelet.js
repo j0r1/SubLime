@@ -31,10 +31,6 @@ var SubLimeLetRun = (function()
 
         var m_generalOpenDlg = null;
 
-        var m_oldKbdFunctionDown = null;
-        var m_oldKbdFunctionUp = null;
-        var m_oldKbdFunctionPress = null;
-
         var toVideoTime = function(S)                                             { return (S - m_syncOffset)*m_timeScale; }
         var toSubtitleTime = function(V)                                          { return V/m_timeScale + m_syncOffset; }
 
@@ -63,6 +59,9 @@ var SubLimeLetRun = (function()
         var m_usingTestSubtitle = false;
 
         var m_loadCachedSubtitleOnStart = false;
+
+        var m_fullScreen = false;
+        var m_vexDiv = null;
 
         var toTimeString = function(t)
         {
@@ -292,8 +291,17 @@ var SubLimeLetRun = (function()
 
             m_overlayDiv.style.width = "" + r.width + "px";
             m_overlayDiv.style.height = "" + r.height + "px";
-            m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
-            m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
+
+            if (!m_fullScreen)
+            {
+                m_overlayDiv.style.top = "" + (window.pageYOffset + r.top) + "px";
+                m_overlayDiv.style.left = "" + (window.pageXOffset + r.left) + "px";
+            }
+            else
+            {
+                m_overlayDiv.style.top = "" + (r.top) + "px";
+                m_overlayDiv.style.left = "" + (r.left) + "px";
+            }
         }
 
         var setSubTitleText = function(txt)
@@ -1398,7 +1406,9 @@ var SubLimeLetRun = (function()
             if (!elem) 
             {
                 // We've left full screen mode
+                m_fullScreen = false;
                 document.body.appendChild(m_overlayDiv);
+                document.body.appendChild(m_vexDiv);
                 return;
             }
             
@@ -1414,6 +1424,7 @@ var SubLimeLetRun = (function()
             {
                 // Assume it's the parent of some video element
                 elem.appendChild(m_overlayDiv);
+                elem.appendChild(m_vexDiv);
             }
         }
 
@@ -1434,11 +1445,13 @@ var SubLimeLetRun = (function()
             if (!m_inDialog)
             {
                 if (evt.altKey && evt.keyCode == m_keyPreferences)
+                {
                     setPreferences();
+                    return false;
+                }
             }
 
-            if (m_oldKbdFunctionUp)
-                m_oldKbdFunctionUp(evt);
+            return true;
         }
 
         var newKeyPressHandler = function(evt)
@@ -1449,25 +1462,48 @@ var SubLimeLetRun = (function()
                 var keyChar = String.fromCharCode(evt.charCode);
 
                 if (inList(m_keyOpenFile, keyChar))
+                {
                     openSRTFile();
+                    return false;
+                }
                 else if (inList(m_keyDownAdjust, keyChar))
+                {
                     syncAdjust(-0.100, false);
+                    return false;
+                }
                 else if (inList(m_keyUpAdjust, keyChar))
+                {
                     syncAdjust(+0.100, false);
+                    return false;
+                }
                 else if (inList(m_keyAbsoluteSync, keyChar))
+                {
                     getAbsoluteSync();
+                    return false;
+                }
                 else if (inList(m_keyAbsoluteScale, keyChar))
+                {
                     getTimeScale();
+                    return false;
+                }
                 else if (inList(m_keySyncPos1, keyChar))
+                {
                     setTimeScalePosition(true);
+                    return false;
+                }
                 else if (inList(m_keySyncPos2, keyChar))
+                {
                     setTimeScalePosition(false);
+                    return false;
+                }
                 else if (inList(m_keySaveSubtitles, keyChar))
+                {
                     saveSyncAdjustedSubtitles();
+                    return false;
+                }
             }
 
-            if (m_oldKbdFunctionPress)
-                m_oldKbdFunctionPress(evt);
+            return true;
         }
 
         var addButtonStyle = function()
@@ -1517,14 +1553,36 @@ var SubLimeLetRun = (function()
             vex.defaultOptions.beforeOpen = function($vexContent, options) { options.origInDialog = m_inDialog; m_inDialog = true; }
             vex.defaultOptions.afterClose = function($vexContent, options) { m_inDialog = options.origInDialog; };
             
+            m_vexDiv = document.createElement("div");
+            document.body.appendChild(m_vexDiv);
+            vex.defaultOptions.appendLocation = m_vexDiv;
+
             m_initializing = false;
             m_initialized = true;
 
-            m_oldKbdFunctionUp = document.onkeyup;
-            document.onkeyup = newKeyUpHandler;
+            var oldKbdFunctionUp = document.onkeyup;
+            document.onkeyup = function(evt) 
+            {
+                if (newKeyUpHandler(evt))
+                {
+                    if (oldKbdFunctionUp)
+                        return oldKbdFunctionUp(evt);
+                    return true;
+                }
+                return false;
+            }
 
-            m_oldKbdFunctionPress = document.onkeypress;
-            document.onkeypress = newKeyPressHandler;
+            var oldKbdFunctionPress = document.onkeypress;
+            document.onkeypress = function(evt)
+            {
+                if (newKeyPressHandler(evt))
+                {
+                    if (oldKbdFunctionPress)
+                        return oldKbdFunctionPress(evt);
+                    return true;
+                }
+                return false;
+            }
 
             setInterval(function() { onCheckSubtitleTimeout(); }, 200);
             setInterval(function() { onCheckSaveParametersTimeout(); }, 1000);
