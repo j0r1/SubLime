@@ -82,6 +82,8 @@ function fullscreen()
         elem.msRequestFullscreen();
     else if (elem.mozRequestFullScreen)
         elem.mozRequestFullScreen();
+    else if (elem.webkitRequestFullScreen)
+        elem.webkitRequestFullScreen();
     else if (elem.webkitRequestFullscreen)
         elem.webkitRequestFullscreen();
     else
@@ -116,13 +118,36 @@ function setGain()
     });
 }
 
+var videoElem = null;
+var videoDiv = null;
+
+var onCheckVideoSizeTimeout = function()
+{
+    if (!videoElem)
+        return;
+
+    var w = video.videoWidth;
+    if (w <= 0)
+        return;
+
+    var $ = jQuery_2_1_0_for_vex;
+    var W = $(window).width();
+
+    var H = Math.round(W/w*video.videoHeight);
+
+    videoElem.style.width = "" + W + "px";
+    videoElem.style.height = "" + H + "px";
+    videoDiv.style.width = "" + W + "px";
+    videoDiv.style.height = "" + H + "px";
+}
+
 function onLoad()
 {
     var $ = jQuery_2_1_0_for_vex;
     var elem = document.getElementById("loadfile");
     elem.onchange = loadVideo;
 
-    vex.defaultOptions.className = 'vex-theme-wireframe sublimedlgbaseclass';
+    vex.defaultOptions.className = 'vex-theme-wireframe';
 
     var video = document.getElementById("video");
 
@@ -136,6 +161,11 @@ function onLoad()
 
     $("#fullscreenbutton").click(fullscreen);
     $("#gainbutton").click(setGain);
+        
+    videoElem = document.getElementById("video");
+    videoDiv = document.getElementById("videodiv");
+
+    setInterval(onCheckVideoSizeTimeout, 1000);
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
