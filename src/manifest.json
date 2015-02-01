@@ -17,6 +17,6 @@
   },
   "web_accessible_resources": [ "FileSaver.js", "jquery.min.js", "sublimelet.js", "sublime.css",
 				"vex-theme-wireframe.css", "vex.css",
-				"vex.dialog.js", "vex.js" ]
+				"vex.dialog.js", "vex.js", "viewer.js" ]
 }
 
