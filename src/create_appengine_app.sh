@@ -16,6 +16,9 @@ for i in index.html \
 		vex.js \
 		FileSaver.js \
 		sublimeshot2.png \
+		viewer.js \
+		viewer.html \
+
 
 do
 	cp $i ../appengine/page/

@@ -88,13 +88,54 @@ function fullscreen()
         vex.dialog.alert("Not able to request full screen, sorry");
 }
 
+var context = null;
+var gainNode = null;
+
+function setGain()
+{
+    vex.dialog.prompt(
+    {
+        message: 'Enter gain value:',
+        placeholder: '' + gainNode.gain.value,
+        callback: function(value) 
+        {
+            if (value !== false)
+            {
+                try
+                {
+                    var g = parseFloat(value);
+
+                    if (g > 0 && g < 256.0)
+                        gainNode.gain.value = g;
+                }
+                catch(e)
+                {
+                }
+            }
+        }
+    });
+}
+
 function onLoad()
 {
+    var $ = jQuery_2_1_0_for_vex;
     var elem = document.getElementById("loadfile");
     elem.onchange = loadVideo;
 
     vex.defaultOptions.className = 'vex-theme-wireframe sublimedlgbaseclass';
 
+    var video = document.getElementById("video");
+
+    context = new webkitAudioContext();
+    gainNode = context.createGain();
+    gainNode.gain.value = 1;
+
+    var source = context.createMediaElementSource(video);
+    source.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    $("#fullscreenbutton").click(fullscreen);
+    $("#gainbutton").click(setGain);
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
