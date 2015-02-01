@@ -151,7 +151,7 @@ function onLoad()
 
     var video = document.getElementById("video");
 
-    context = new webkitAudioContext();
+    context = new AudioContext();
     gainNode = context.createGain();
     gainNode.gain.value = 1;
 
