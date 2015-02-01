@@ -120,9 +120,24 @@ function setGain()
 
 var videoElem = null;
 var videoDiv = null;
+var lastMouseTime = 0;
 
-var onCheckVideoSizeTimeout = function()
+function onMouseMove(evt)
 {
+    var $ = jQuery_2_1_0_for_vex;
+
+    lastMouseTime = performance.now();
+    $(videoDiv).css("cursor", "default");
+}
+
+function onCheckVideoSizeTimeout()
+{
+    var $ = jQuery_2_1_0_for_vex;
+    var now = performance.now();
+
+    if (now - lastMouseTime > 5000)
+        $(videoDiv).css("cursor", "none");
+
     if (!videoElem)
         return;
 
@@ -130,9 +145,7 @@ var onCheckVideoSizeTimeout = function()
     if (w <= 0)
         return;
 
-    var $ = jQuery_2_1_0_for_vex;
     var W = $(window).width();
-
     var H = Math.round(W/w*video.videoHeight);
 
     videoElem.style.width = "" + W + "px";
@@ -166,6 +179,8 @@ function onLoad()
     videoDiv = document.getElementById("videodiv");
 
     setInterval(onCheckVideoSizeTimeout, 1000);
+
+	window.addEventListener("mousemove", function(e) { onMouseMove(e); }, false);
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
