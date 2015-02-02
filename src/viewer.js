@@ -125,7 +125,7 @@ function onMouseMove(evt)
     var $ = jQuery_2_1_0_for_vex;
 
     lastMouseTime = performance.now();
-    $(videoDiv).css("cursor", "default");
+    $(videoElem).css("cursor", "default");
     $("#video-controls").show();
 }
 
@@ -137,7 +137,7 @@ function onTimeout()
     // See if we should hide the mouse
     if (now - lastMouseTime > 5000)
     {
-        $(videoDiv).css("cursor", "none");
+        $(videoElem).css("cursor", "none");
         $("#video-controls").hide();
     }
 
@@ -145,8 +145,8 @@ function onTimeout()
     var h = videoElem.videoHeight;
     if (w <= 0 || h <= 0)
     {
-        w = 16;
-        h = 9;
+        w = $(window).width();
+        h = $(window).height();
     }
 
     var W = $(window).width();
@@ -174,6 +174,8 @@ function checkPlayButton()
     if (videoElem.paused)
         playing = false;
     if (videoElem.ended)
+        playing = false;
+    if (isNaN(videoElem.duration))
         playing = false;
     
 	var playButton = document.getElementById("play-pause");
@@ -307,25 +309,29 @@ jQuery_2_1_0_for_vex(document).ready(onLoad);
 
 document.onkeydown = function(evt)
 {
-    console.log(evt.keyCode);
     if (evt.keyCode == 32)
     {
-        if (videoElem.paused)
-            videoElem.play();
-        else
-            videoElem.pause();
-
+        if (videoElem.duration >= 0)
+        {
+            if (videoElem.paused)
+                videoElem.play();
+            else
+                videoElem.pause();
+        }
         checkPlayButton();
     }
-    return true;
+    evt.preventDefault();
+    return false;
 }
 
 document.onkeyup = function(evt)
 {
-    return true;
+    evt.preventDefault();
+    return false;
 }
 
 document.onkeypress = function(evt)
 {
-    return true;
+    evt.preventDefault();
+    return false;
 }
