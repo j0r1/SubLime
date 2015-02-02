@@ -49,8 +49,8 @@ function endsWith(s, end, caseInsensitive)
 
 function validateFileName(name)
 {
-    if (!endsWith(name, ".mp4", true) && !endsWith(name, ".webm"))
-        throw "Filename does not end with '.mp4' or '.webm'";
+    if (!endsWith(name, ".mp4", true) && !endsWith(name, ".webm") && !endsWith(name, ".m4v"))
+        throw "Filename does not end with '.mp4', '.m4v' or '.webm'";
 }
 
 function gotoLastKnownVideoPosition(name)
@@ -120,7 +120,7 @@ function onVideoSelected(file)
         {
             return function()
             {
-                console.log("Saving " + file.name + " settings");
+                //console.log("Saving " + file.name + " settings");
 
                 var pos = videoElem.currentTime;
                 var gain = gainNode.gain.value;
