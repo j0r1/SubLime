@@ -1,4 +1,4 @@
-var SubLime = function(allowGain)
+var SubLime = function(allowGain, mayOpenDialog)
 {
     var _this = this;
     var m_initialized = false;
@@ -772,6 +772,11 @@ var SubLime = function(allowGain)
         {
             vex.dialog.alert("Error: " + textToHTML(err));
         }
+    }
+
+    this.openSubtitles = function()
+    {
+        openSRTFile();
     }
 
     var openSRTFile = function()
@@ -1628,7 +1633,7 @@ var SubLime = function(allowGain)
         document.head.appendChild(elem);
     }
 
-    var startup = function()
+    var startup = function(mayOpenDialog)
     {
         addButtonStyle();
 
@@ -1728,7 +1733,7 @@ var SubLime = function(allowGain)
         else
             openSRTdialog = true;
 
-        if (openSRTdialog)
+        if (openSRTdialog && mayOpenDialog)
         {
             // Just open the 'open' dialog
             setTimeout(function() { openSRTFile(); }, 0 );
@@ -1774,3 +1779,4 @@ var SubLime = function(allowGain)
     startup();
     this.run();
 }
+

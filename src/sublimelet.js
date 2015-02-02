@@ -98,20 +98,30 @@ var SubLimeLetRun = (function()
 
         this.run = function()
         {
-            console.log("run");
-
             if (m_initializing)
                 return;
 
             if (!m_initialized)
             {
+                try
+                {
+                    var dummy = SubLime; // let's see if this is already loaded (in the viewer page for example)
+                    // ok, is known, let's bail;
+                    console.log("SubLime seems to be in use already, bailing");
+                    return;
+                }
+                catch(e)
+                {
+                    // This is what we'd expect
+                }
+
                 m_initializing = true;
                 init();
                 return;
             }
 
             if (!m_subLime)
-                m_subLime = new SubLime(true);
+                m_subLime = new SubLime(true, true);
             else
                 m_subLime.run();
         }

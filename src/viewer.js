@@ -39,7 +39,7 @@ function validateFileName(name)
 
 function onVideoSelected(file)
 {
-    document.getElementById("video").src = URL.createObjectURL(file);
+    videoElem.src = URL.createObjectURL(file);
 }
 
 function loadVideo(evt)
@@ -129,21 +129,20 @@ function onMouseMove(evt)
     $("#video-controls").show();
 }
 
-function onCheckVideoSizeTimeout()
+function onTimeout()
 {
     var $ = jQuery_2_1_0_for_vex;
     var now = performance.now();
 
+    // See if we should hide the mouse
     if (now - lastMouseTime > 5000)
     {
         $(videoDiv).css("cursor", "none");
         $("#video-controls").hide();
     }
-    if (!videoElem)
-        return;
 
-    var w = video.videoWidth;
-    var h = video.videoHeight;
+    var w = videoElem.videoWidth;
+    var h = videoElem.videoHeight;
     if (w <= 0 || h <= 0)
     {
         w = 16;
@@ -164,6 +163,24 @@ function onCheckVideoSizeTimeout()
     videoElem.style.height = "" + H + "px";
     videoDiv.style.width = "" + W + "px";
     videoDiv.style.height = "" + H + "px";
+
+    checkPlayButton();
+}
+
+function checkPlayButton()
+{
+    var playing = true;
+
+    if (videoElem.paused)
+        playing = false;
+    if (videoElem.ended)
+        playing = false;
+    
+	var playButton = document.getElementById("play-pause");
+    if (playing)
+		playButton.innerHTML = "Pause";
+    else
+		playButton.innerHTML = "Play";
 }
 
 // Custom controls from http://blog.teamtreehouse.com/building-custom-controls-for-html5-videos
@@ -181,21 +198,16 @@ function setupVideoControls()
 	var seekBar = document.getElementById("seek-bar");
 	var volumeBar = document.getElementById("volume-bar");
 
-
 	// Event listener for the play/pause button
 	playButton.addEventListener("click", function() {
 		if (video.paused == true) {
 			// Play the video
 			video.play();
-
-			// Update the button text to 'Pause'
-			playButton.innerHTML = "Pause";
+            checkPlayButton();
 		} else {
 			// Pause the video
 			video.pause();
-
-			// Update the button text to 'Play'
-			playButton.innerHTML = "Play";
+            checkPlayButton();
 		}
 	});
 
@@ -256,38 +268,64 @@ function setupVideoControls()
 	});
 }
 
+var subLime = null;
+
 function onLoad()
 {
     var $ = jQuery_2_1_0_for_vex;
     var elem = document.getElementById("loadfile");
     elem.onchange = loadVideo;
 
-    vex.defaultOptions.className = 'vex-theme-wireframe';
+    videoElem = document.getElementById("video");
+    videoDiv = document.getElementById("videodiv");
 
-    var video = document.getElementById("video");
+    vex.defaultOptions.className = 'vex-theme-wireframe';
+    vex.defaultOptions.appendLocation = videoDiv;
 
     context = new AudioContext();
     gainNode = context.createGain();
     gainNode.gain.value = 1;
 
-    var source = context.createMediaElementSource(video);
+    var source = context.createMediaElementSource(videoElem);
     source.connect(gainNode);
     gainNode.connect(context.destination);
 
     $("#fullscreenbutton").click(fullscreen);
     $("#gainbutton").click(setGain);
-        
-    videoElem = document.getElementById("video");
-    videoDiv = document.getElementById("videodiv");
 
-    vex.defaultOptions.appendLocation = videoDiv;
-
-    setInterval(onCheckVideoSizeTimeout, 1000);
+    setInterval(onTimeout, 500);
 
 	window.addEventListener("mousemove", function(e) { onMouseMove(e); }, false);
 
     setupVideoControls();
+
+    subLime = new SubLime(false, false);
+    $("#subtitlesbutton").click(function() { subLime.openSubtitles(); });
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
 
+document.onkeydown = function(evt)
+{
+    console.log(evt.keyCode);
+    if (evt.keyCode == 32)
+    {
+        if (videoElem.paused)
+            videoElem.play();
+        else
+            videoElem.pause();
+
+        checkPlayButton();
+    }
+    return true;
+}
+
+document.onkeyup = function(evt)
+{
+    return true;
+}
+
+document.onkeypress = function(evt)
+{
+    return true;
+}
