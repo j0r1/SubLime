@@ -54,9 +54,10 @@ body,html {
 	border-radius: 3px;
 }
 
+/*
 .control:hover {
 	cursor: pointer;
-}
+}*/
 
 #seek-bar {
 	width: 360px;
