@@ -1,4 +1,5 @@
 var jQuery_2_1_0_for_vex = jQuery.noConflict(true);
+var videoPosTimer = null;
 
 function textToHTML(text)
 {
@@ -37,9 +38,59 @@ function validateFileName(name)
         throw "Filename does not end with '.mp4' or '.webm'";
 }
 
+function gotoLastKnownVideoPosition(name)
+{
+    try
+    {
+        var videoInfo = JSON.parse(localStorage[name]);
+        var newPos = videoInfo["position"];
+
+        newPos -= 20.0; // go back 20 secs
+        if (newPos < 0)
+            newPos = 0;
+
+        console.log("Setting video time to " + newPos);
+        videoElem.currentTime = newPos;
+    }
+    catch(e)
+    {
+        console.log("gotoLastKnownVideoPosition: " + e);
+    }
+}
+
 function onVideoSelected(file)
 {
     videoElem.src = URL.createObjectURL(file);
+    videoElem.firstPlay = true;
+    videoElem.oncanplay = function() 
+    { 
+        if (!videoElem.firstPlay)
+            return;
+        videoElem.firstPlay = false;
+
+        var videoFileName = "video-file://" + file.name;
+        if (videoPosTimer)
+        {
+            clearInterval(videoPosTimer);
+            videoPosTimer = null;
+        }
+
+        gotoLastKnownVideoPosition(videoFileName);
+
+        var videoPosSaveFunction = (function(name)
+        {
+            return function()
+            {
+                var pos = videoElem.currentTime;
+
+                localStorage[name] = JSON.stringify({ "position": pos });
+            }
+        })(videoFileName);
+
+        videoPosTimer = setInterval(videoPosSaveFunction, 500);
+
+        videoElem.play();
+    }
 }
 
 function loadVideo(evt)
@@ -64,7 +115,6 @@ function loadVideo(evt)
         var file = files[0];
 
         validateFileName(file.name);
-
         onVideoSelected(file);
     }
     catch(err)
@@ -319,19 +369,26 @@ document.onkeydown = function(evt)
                 videoElem.pause();
         }
         checkPlayButton();
+        evt.preventDefault();
+        return false;
     }
-    evt.preventDefault();
-    return false;
 }
 
 document.onkeyup = function(evt)
 {
-    evt.preventDefault();
-    return false;
+    if (evt.keyCode == 32)
+    {
+        evt.preventDefault();
+        return false;
+    }
 }
 
 document.onkeypress = function(evt)
 {
-    evt.preventDefault();
-    return false;
+    if (evt.keyCode == 32)
+    {
+        evt.preventDefault();
+        return false;
+    }
 }
+
