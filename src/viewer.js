@@ -12,6 +12,21 @@ function textToHTML(text)
         .replace(/\r\n|\r|\n/g, "<br />");
 }
 
+function startsWith(s, start, caseInsensitive)
+{
+    if (caseInsensitive)
+    {
+        if (s.substr(0, start.length).toLowerCase() == start.toLowerCase())
+            return true;
+    }
+    else
+    {
+        if (s.substr(0, start.length) == start)
+            return true;
+    }
+    return false;
+}
+
 function endsWith(s, end, caseInsensitive)
 {
     var startIdx = s.length - end.length;
@@ -51,6 +66,7 @@ function gotoLastKnownVideoPosition(name)
 
         console.log("Setting video time to " + newPos);
         videoElem.currentTime = newPos;
+
     }
     catch(e)
     {
@@ -58,37 +74,63 @@ function gotoLastKnownVideoPosition(name)
     }
 }
 
+function restoreGainSetting(name)
+{
+    try
+    {
+        var videoInfo = JSON.parse(localStorage[name]);
+        var g = videoInfo["gain"];
+
+        console.log("Setting gain to " + g);
+        gainNode.gain.value = g;
+    }
+    catch(e)
+    {
+        console.log("restoreGainSetting: " + e);
+    }
+}
+
 function onVideoSelected(file)
 {
     videoElem.src = URL.createObjectURL(file);
     videoElem.firstPlay = true;
+    if (videoPosTimer)
+    {
+        clearInterval(videoPosTimer);
+        videoPosTimer = null;
+    }
+
     videoElem.oncanplay = function() 
     { 
         if (!videoElem.firstPlay)
             return;
+
         videoElem.firstPlay = false;
 
-        var videoFileName = "video-file://" + file.name;
-        if (videoPosTimer)
-        {
-            clearInterval(videoPosTimer);
-            videoPosTimer = null;
-        }
+        // Set gain to default
+        gainNode.gain.value = 1;
+
+        var identifier = SparkMD5.hash(file.name);
+        var videoFileName = "video-file://" + identifier;
 
         gotoLastKnownVideoPosition(videoFileName);
+        restoreGainSetting(videoFileName);
 
-        var videoPosSaveFunction = (function(name)
+        var saveFunction = (function(name)
         {
             return function()
             {
-                var pos = videoElem.currentTime;
+                console.log("Saving " + file.name + " settings");
 
-                localStorage[name] = JSON.stringify({ "position": pos });
+                var pos = videoElem.currentTime;
+                var gain = gainNode.gain.value;
+                var now = Date.now();
+
+                localStorage[name] = JSON.stringify({ "position": pos, "time": now, "gain": gain });
             }
         })(videoFileName);
 
-        videoPosTimer = setInterval(videoPosSaveFunction, 500);
-
+        videoPosTimer = setInterval(saveFunction, 500);
         videoElem.play();
     }
 }
@@ -320,6 +362,50 @@ function setupVideoControls()
 	});
 }
 
+function cleanupLocalStorage(maxEntries)
+{
+    var now = Date.now();
+    var arr = [ ]
+
+    for (var n in localStorage)
+    {
+        if (startsWith(n, "video-file://"))
+        {
+            try
+            {
+                var videoInfo = JSON.parse(localStorage[n]);
+                var t = now - videoInfo["time"];
+
+                arr.push({ "time": t, "key": n });
+            }
+            catch(e)
+            {
+                console.log("Error: " + e);
+                console.log("Deleting localStorage entry " + n);
+                delete localStorage[n];
+            }
+        }
+    }
+
+    arr.sort(function(a, b) 
+    {
+        if (a.time > b.time)
+            return 1;
+        if (a.time < b.time)
+            return -1;
+        return 0;
+    });
+
+    console.log(arr);
+
+    for (var i = maxEntries ; i < arr.length ; i++)
+    {
+        var key = arr[i]["key"];
+        console.log("Deleting localStorage entry " + key);
+        delete localStorage[key];
+    }
+}
+
 var subLime = null;
 
 function onLoad()
@@ -353,6 +439,8 @@ function onLoad()
 
     subLime = new SubLime(false, false);
     $("#subtitlesbutton").click(function() { subLime.openSubtitles(); });
+
+    cleanupLocalStorage(5);
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
