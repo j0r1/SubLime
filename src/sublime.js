@@ -1,4 +1,4 @@
-var SubLime = function()
+var SubLime = function(allowGain)
 {
     var _this = this;
     var m_initialized = false;
@@ -39,6 +39,7 @@ var SubLime = function()
     var m_keySyncPos1Default = [ 'k', 'c' ]; // 'k' or 'c'
     var m_keySyncPos2Default = [ 'l', 'v' ]; // 'l' or 'v'
     var m_keySaveSubtitlesDefault = [ 's' ]; // 's'
+    var m_keySetAudioGainDefault = [ 'b' ];
 
     var copyObject = function(l)                                                { return JSON.parse(JSON.stringify(l)); }
 
@@ -50,6 +51,7 @@ var SubLime = function()
     var m_keySyncPos1 = copyObject(m_keySyncPos1Default);
     var m_keySyncPos2 = copyObject(m_keySyncPos2Default);
     var m_keySaveSubtitles = copyObject(m_keySaveSubtitlesDefault);
+    var m_keySetAudioGain = copyObject(m_keySetAudioGainDefault);
 
     var m_usingTestSubtitle = false;
 
@@ -881,6 +883,7 @@ var SubLime = function()
             try { m_keySyncPos1 = preferences.keyinfo["autostart"]; } catch(e) { }
             try { m_keySyncPos2 = preferences.keyinfo["autoend"]; } catch(e) { }
             try { m_keySaveSubtitles = preferences.keyinfo["save"]; } catch(e) { }
+            try { m_keySetAudioGain = preferences.keyinfo["audiogain"]; } catch(e) { }
             try { m_loadCachedSubtitleOnStart = preferences.loadCachedSubtitles; } catch(e) { }
 
             if (m_keyOpenFile === undefined) m_keyOpenFile = m_keyOpenFileDefault;
@@ -891,6 +894,7 @@ var SubLime = function()
             if (m_keySyncPos1 === undefined) m_keySyncPos1 = m_keySyncPos1Default;
             if (m_keySyncPos2 === undefined) m_keySyncPos2 = m_keySyncPos2Default;
             if (m_keySaveSubtitles === undefined) m_keySaveSubtitles = m_keySaveSubtitlesDefault;
+            if (m_keySetAudioGain === undefined) m_keySetAudioGain = m_keySetAudioGainDefault;
         }
     }
 
@@ -911,6 +915,7 @@ var SubLime = function()
                 "autostart": m_keySyncPos1,
                 "autoend": m_keySyncPos2,
                 "save": m_keySaveSubtitles,
+                "audiogain": m_keySetAudioGain,
             },
             loadCachedSubtitles: m_loadCachedSubtitleOnStart
         }
@@ -1088,6 +1093,7 @@ var SubLime = function()
                       keyInfo["autostart"] = copyObject(m_keySyncPos1Default);
                       keyInfo["autoend"] = copyObject(m_keySyncPos2Default);
                       keyInfo["save"] = copyObject(m_keySaveSubtitlesDefault);
+                      keyInfo["audiogain"] = copyObject(m_keySetAudioGainDefault);
                       
                       $vexContent.data().vex.value = true;
                       return vex.close($vexContent.data().vex.id);
@@ -1109,6 +1115,9 @@ var SubLime = function()
                     { text: "Set&nbsp;sync&nbsp;pos&nbsp;2:", infoName: "autoend" },
                     { text: "Save&nbsp;subtitles:", infoName: "save" },
                 ];
+
+                if (allowGain)
+                    bindings.push( { text: "Set&nbsp;audio&nbsp;boost:", infoName: "audiogain" } );
 
                 for (var i = 0 ; i < bindings.length ; i++)
                 {
@@ -1227,6 +1236,7 @@ var SubLime = function()
             "autostart": m_keySyncPos1,
             "autoend": m_keySyncPos2,
             "save": m_keySaveSubtitles,
+            "audiogain": m_keySetAudioGain,
         });
         var newKeyInfo = copyObject(originalKeyInfo);
 
@@ -1380,6 +1390,7 @@ var SubLime = function()
                 m_keySyncPos1 = newKeyInfo["autostart"];
                 m_keySyncPos2 = newKeyInfo["autoend"];
                 m_keySaveSubtitles = newKeyInfo["save"];
+                m_keySetAudioGain = newKeyInfo["audiogain"];
 
                 var reloadElem = document.getElementById("sublimeautoreload");
                 if ($(reloadElem).prop('checked'))
@@ -1496,9 +1507,71 @@ var SubLime = function()
                 saveSyncAdjustedSubtitles();
                 return false;
             }
+            else if (inList(m_keySetAudioGain, keyChar))
+            {
+                getAudioGain();
+                return false;
+            }
         }
 
         return true;
+    }
+
+    var getAudioGain = function()
+    {
+        if (!allowGain)
+            return;
+
+        if (!m_video)
+            return;
+
+        var currentGain = 1;
+        if (m_video.subLimeGainNode)
+            currentGain = m_video.subLimeGainNode.gain.value;
+
+        vex.dialog.prompt(
+        {
+            message: 'Enter audio gain value:',
+            placeholder: '' + currentGain.toFixed(3),
+            callback: function(value) 
+            {
+                if (value !== false)
+                {
+                    var g = -1;
+                    try
+                    {
+                        g = parseFloat(value);
+                    }
+                    catch(e)
+                    {
+                    }
+
+                    if (g > 0 && g < 256)
+                    {
+                        if (m_video.subLimeGainNode)
+                        {
+                            console.log("Re-using existing gain node");
+                            m_video.subLimeGainNode.gain.value = g;
+                        }
+                        else
+                        {
+                            console.log("Creating new gain node");
+
+                            var context = new AudioContext();
+                            var gainNode = context.createGain();
+
+                            gainNode.gain.value = g;
+
+                            var source = context.createMediaElementSource(m_video);
+                            source.connect(gainNode);
+                            gainNode.connect(context.destination);
+
+                            m_video.subLimeGainNode = gainNode;
+                        }
+                    }
+                }
+            },
+        });
     }
 
     var addButtonStyle = function()

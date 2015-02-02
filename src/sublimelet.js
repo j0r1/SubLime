@@ -111,7 +111,7 @@ var SubLimeLetRun = (function()
             }
 
             if (!m_subLime)
-                m_subLime = new SubLime();
+                m_subLime = new SubLime(true);
             else
                 m_subLime.run();
         }
