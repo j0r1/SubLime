@@ -18,6 +18,7 @@ for i in index.html \
 		sublimeshot2.png \
 		viewer.js \
 		viewer.html \
+		viewer.css
 
 
 do
