@@ -217,7 +217,7 @@ function gotInteraction()
     var $ = jQuery_2_1_0_for_vex;
     lastInteractionTime = performance.now();
     $(videoElem).css("cursor", "default");
-    $("#video-controls").show();
+    $("#video-controls").slideDown(1000);
 }
 
 function onMouseMove(evt)
@@ -234,7 +234,7 @@ function onTimeout()
     if (now - lastInteractionTime > 3000)
     {
         $(videoElem).css("cursor", "none");
-        $("#video-controls").hide();
+        $("#video-controls").slideUp(1000);
     }
 
     var w = videoElem.videoWidth;
