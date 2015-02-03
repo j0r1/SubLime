@@ -107,6 +107,20 @@ function onVideoSelected(file)
 
         videoElem.firstPlay = false;
 
+        // Set seek bar props
+	    var seekBar = document.getElementById("seek-bar");
+        seekBar.setAttribute("min", 1);
+
+        var numSecs = Math.round(videoElem.duration);
+        var maxVal = 60*60*24;
+        if (numSecs < maxVal)
+            maxVal = numSecs;
+        seekBar.setAttribute("max", maxVal);
+
+        seekBar.setAttribute("step", 1);
+        seekBar.setAttribute("value", 1);
+
+
         // Set gain to default
         gainNode.gain.value = 1;
 
@@ -281,6 +295,33 @@ function checkPlayButton()
 		playButton.innerHTML = "Play";
 }
 
+function convertToTimeString(t) // t in seconds and positive
+{
+    var tHours = Math.floor(t/3600);
+
+    t -= tHours*3600;
+    var tMin = Math.floor(t/60);
+    var tMinStr = "" + tMin;
+    if (tMinStr.length < 2)
+        tMinStr = "0" + tMinStr;
+
+    t -= tMin*60;
+    var tSec = Math.floor(t);
+    var tSecStr = "" + tSec;
+    if (tSecStr.length < 2)
+        tSecStr = "0" + tSecStr;
+
+    return "" + tHours + ":" + tMinStr + ":" + tSecStr;
+}
+
+function updateTimeLeft()
+{
+    var $ = jQuery_2_1_0_for_vex;
+    var t = (videoElem.duration-videoElem.currentTime);
+
+    $("#timeleft").html("-" + convertToTimeString(t) + "/" + convertToTimeString(videoElem.duration));
+}
+
 // Custom controls from http://blog.teamtreehouse.com/building-custom-controls-for-html5-videos
 function setupVideoControls()
 {
@@ -333,7 +374,7 @@ function setupVideoControls()
 	// Event listener for the seek bar
 	seekBar.addEventListener("change", function() {
 		// Calculate the new time
-		var time = video.duration * (seekBar.value / 100);
+		var time = video.duration * (seekBar.value / seekBar.max);
 
 		// Update the video time
 		video.currentTime = time;
@@ -343,10 +384,12 @@ function setupVideoControls()
 	// Update the seek bar as the video plays
 	video.addEventListener("timeupdate", function() {
 		// Calculate the slider value
-		var value = (100 / video.duration) * video.currentTime;
+		var value = (seekBar.max / video.duration) * video.currentTime;
 
 		// Update the slider value
 		seekBar.value = value;
+
+        updateTimeLeft();
 	});
 
 	// Pause the video when the seek handle is being dragged
