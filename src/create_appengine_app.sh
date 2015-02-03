@@ -9,6 +9,7 @@ for i in index.html \
 		background.js \
 		jquery.min.js \
 		sublime.css \
+		sublime.js \
 		sublimelet.js \
 		vex-theme-wireframe.css \
 		vex.css \
@@ -18,7 +19,8 @@ for i in index.html \
 		sublimeshot2.png \
 		viewer.js \
 		viewer.html \
-		viewer.css
+		viewer.css \
+		spark-md5.js
 
 
 do

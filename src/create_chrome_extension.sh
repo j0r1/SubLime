@@ -9,11 +9,13 @@ for i in manifest.json \
 		start.js \
 		sublime.css \
 		sublimelet.js \
+		sublime.js \
 		vex-theme-wireframe.css \
 		vex.css \
 		vex.dialog.js \
 		vex.js \
 		FileSaver.js \
+		spark-md5.js
 
 do
 	cp $i ../chromeextension/

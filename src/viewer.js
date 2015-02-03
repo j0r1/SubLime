@@ -210,15 +210,19 @@ function setGain()
 
 var videoElem = null;
 var videoDiv = null;
-var lastMouseTime = 0;
+var lastInteractionTime = 0;
+
+function gotInteraction()
+{
+    var $ = jQuery_2_1_0_for_vex;
+    lastInteractionTime = performance.now();
+    $(videoElem).css("cursor", "default");
+    $("#video-controls").show();
+}
 
 function onMouseMove(evt)
 {
-    var $ = jQuery_2_1_0_for_vex;
-
-    lastMouseTime = performance.now();
-    $(videoElem).css("cursor", "default");
-    $("#video-controls").show();
+    gotInteraction();
 }
 
 function onTimeout()
@@ -227,7 +231,7 @@ function onTimeout()
     var now = performance.now();
 
     // See if we should hide the mouse
-    if (now - lastMouseTime > 5000)
+    if (now - lastInteractionTime > 3000)
     {
         $(videoElem).css("cursor", "none");
         $("#video-controls").hide();
@@ -440,13 +444,17 @@ function onLoad()
     subLime = new SubLime(false, false);
     $("#subtitlesbutton").click(function() { subLime.openSubtitles(); });
 
-    cleanupLocalStorage(5);
+    cleanupLocalStorage(50);
+
+    onTimeout(); //adjust width/height of video element right away
+    window.onresize = onTimeout; // make sure width/height of video is changed right away
 }
 
 jQuery_2_1_0_for_vex(document).ready(onLoad);
 
 document.onkeydown = function(evt)
 {
+    gotInteraction();
     if (evt.keyCode == 32)
     {
         if (videoElem.duration >= 0)
@@ -464,6 +472,7 @@ document.onkeydown = function(evt)
 
 document.onkeyup = function(evt)
 {
+    gotInteraction();
     if (evt.keyCode == 32)
     {
         evt.preventDefault();
@@ -473,6 +482,7 @@ document.onkeyup = function(evt)
 
 document.onkeypress = function(evt)
 {
+    gotInteraction();
     if (evt.keyCode == 32)
     {
         evt.preventDefault();
