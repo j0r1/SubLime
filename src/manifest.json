@@ -7,7 +7,7 @@
 
   "homepage_url": "https://sub-lime.appspot.com/",
   "permissions": [ "activeTab" ],
-  "options_page": "viewer.html",
+  "options_page": "options.html",
   "background": {
     "scripts": ["background.js"],
     "persistent": false
@@ -15,7 +15,8 @@
   "browser_action": {
     "default_icon": "icon.png"
   },
-  "web_accessible_resources": [ "FileSaver.js", "jquery.min.js", "sublime.js", "sublimelet.js", "sublime.css",
+  "web_accessible_resources": [ "FileSaver.js", "jquery.min.js", "sublime.js", "sublimelet.js", 
+  				"sublime.css", "options.html", "options.js",
 				"vex-theme-wireframe.css", "vex.css",
 				"vex.dialog.js", "vex.js" ]
 }
