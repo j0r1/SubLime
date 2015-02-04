@@ -1,5 +1,6 @@
 #!/bin/bash
 
+./createindexhtml.sh >index.html
 mkdir ../appengine/page
 
 for i in index.html \

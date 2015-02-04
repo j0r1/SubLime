@@ -14,6 +14,12 @@ In case there's more than one video on a webpage, just pressing the Chrome exten
 button again, or running the bookmarklet again, should move the subtitles to
 the next video.
 
+There's also a small tool which can play local video files (supported video formats
+will depend on your browser):
+
+ - Local video player [web page](viewer.html)
+ - When using the Chrome extension, right click the SubLime icon and select 'Options'.
+
 License and disclaimer
 ----------------------
 SubLime is licensed under the MIT license:
@@ -63,6 +69,7 @@ Default key bindings
  - 'l' or 'v': set second sync calculation point
  - 'o': open another subtitle file
  - 's': save the current (possibly re-synced) subtitles to a file
+ - 'b': set audio boost factor
  - 'Alt' + 'p': open preferences dialog
 
 Except for the key to open the preferences dialog, all key bindings are 
