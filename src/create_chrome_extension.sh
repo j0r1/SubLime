@@ -15,7 +15,10 @@ for i in manifest.json \
 		vex.dialog.js \
 		vex.js \
 		FileSaver.js \
-		spark-md5.js
+		spark-md5.js \
+		viewer.css \
+		viewer.html \
+		viewer.js
 
 do
 	cp $i ../chromeextension/

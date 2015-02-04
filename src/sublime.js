@@ -790,6 +790,7 @@ var SubLime = function(allowGain, mayOpenDialog)
                 '<ul>',
                 '<li>Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
                 '<li id="sublimeloadcachedsrtlistitem">Load last used SRT file from cache: <button id="sublimeloadcachedsrt">Load</button> <span id="sublimeloadcachedsrtfilename"></span></li>',
+                '<li>Clear loaded subtitles: <button id="sublimeclearsubsbutton">Clear</button></li>',
                 '</ul>'
                          ].join("\n"),
             buttons: [ vex.dialog.buttons.NO ],
@@ -814,6 +815,14 @@ var SubLime = function(allowGain, mayOpenDialog)
                         vex.dialog.alert("Error: " + textToHTML(err));
                     }
                     return false;
+                }
+
+                elem = document.getElementById("sublimeclearsubsbutton");
+                elem.onclick = function()
+                {
+                    m_localStorageKey = null;
+                    m_subtitles = null;
+                    setSubTitleText("");
                 }
 
                 try
