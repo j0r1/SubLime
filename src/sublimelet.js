@@ -22,7 +22,8 @@ var SubLimeLetRun = (function()
             // wait for them
             var extraResources = [
                             //{ type: "link", url: "//fonts.googleapis.com/css?family=Open+Sans:800,700,400,600,300" }
-                            { type: "link", url: "//fonts.googleapis.com/css?family=Titillium+Web:900,700,700italic" }
+                            //{ type: "link", url: "//fonts.googleapis.com/css?family=Titillium+Web:900,700,700italic" }
+                            { type: "link", url: "//fonts.googleapis.com/css?family=Roboto:900,700,700italic" }
                           ];
             processResource(0, extraResources);
 

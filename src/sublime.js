@@ -1642,7 +1642,7 @@ var SubLime = function(allowGain, mayOpenDialog)
         document.head.appendChild(elem);
     }
 
-    var startup = function(mayOpenDialog)
+    var startup = function()
     {
         addButtonStyle();
 

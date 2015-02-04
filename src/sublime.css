@@ -3,7 +3,7 @@
 	z-index: 1109;
 	pointer-events: none;
         text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
-	font-family: 'Titillium Web', sans-serif;
+	font-family: 'Roboto', sans-serif;
         font-weight: bold;
         color: white;
 }
@@ -31,7 +31,7 @@
 .sublimedlgbaseclass
 {
     font-size: 14px;
-	font-family: 'Titillium Web', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .sublimedlgbaseclass ul
