@@ -106,7 +106,7 @@ var SubLimeLetRun = (function()
             {
                 try
                 {
-                    var dummy = SubLime; // let's see if this is already loaded (in the viewer page for example)
+                    var dummy = SubLimeSubtitles; // let's see if this is already loaded (in the viewer page for example)
                     // ok, is known, let's bail;
                     console.log("SubLime seems to be in use already, bailing");
                     return;
@@ -122,7 +122,7 @@ var SubLimeLetRun = (function()
             }
 
             if (!m_subLime)
-                m_subLime = new SubLime(true, true);
+                m_subLime = new SubLimeSubtitles(true, true);
             else
                 m_subLime.run();
         }

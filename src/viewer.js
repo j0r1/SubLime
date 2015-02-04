@@ -491,7 +491,7 @@ function onLoad()
 
     setupVideoControls();
 
-    subLime = new SubLime(false, false);
+    subLime = new SubLimeSubtitles(false, false);
     $("#subtitlesbutton").click(function() { subLime.openSubtitles(); });
 
     cleanupLocalStorage(50);

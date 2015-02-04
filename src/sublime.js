@@ -1,4 +1,4 @@
-var SubLime = function(allowGain, mayOpenDialog)
+var SubLimeSubtitles = function(allowGain, mayOpenDialog)
 {
     var _this = this;
     var m_initialized = false;
