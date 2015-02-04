@@ -224,6 +224,7 @@ function setGain()
 
 var videoElem = null;
 var videoDiv = null;
+var spaceDiv = null;
 var lastInteractionTime = 0;
 
 function gotInteraction()
@@ -273,6 +274,11 @@ function onTimeout()
     videoElem.style.height = "" + H + "px";
     videoDiv.style.width = "" + W + "px";
     videoDiv.style.height = "" + H + "px";
+
+    var Hextra = Math.round((Hmax-H)/2);
+
+    spaceDiv.style.width = "" + W + "px";
+    spaceDiv.style.height = "" + Hextra + "px";
 
     checkPlayButton();
 }
@@ -463,6 +469,7 @@ function onLoad()
 
     videoElem = document.getElementById("video");
     videoDiv = document.getElementById("videodiv");
+    spaceDiv = document.getElementById("spacediv");
 
     vex.defaultOptions.className = 'vex-theme-wireframe';
     vex.defaultOptions.appendLocation = videoDiv;
