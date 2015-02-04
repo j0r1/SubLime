@@ -18,7 +18,9 @@ for i in manifest.json \
 		spark-md5.js \
 		viewer.css \
 		viewer.html \
-		viewer.js
+		viewer.js \
+		options.html \
+		options.js
 
 do
 	cp $i ../chromeextension/
