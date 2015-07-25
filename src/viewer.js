@@ -518,6 +518,28 @@ document.onkeydown = function(evt)
         evt.preventDefault();
         return false;
     }
+    else if ([37, 38, 39, 40, 33, 34].indexOf(evt.keyCode) >= 0)
+    {
+        var dt = 0;
+        if (evt.keyCode == 37)
+            dt = -10.0;
+        else if (evt.keyCode == 40)
+            dt = -60.0;
+        else if (evt.keyCode == 34)
+            dt = -600.0;
+        else if (evt.keyCode == 39)
+            dt = 10.0;
+        else if (evt.keyCode == 38)
+            dt = 60.0;
+        else if (evt.keyCode == 33)
+            dt = 600.0;
+
+        var curTime = videoElem.currentTime;
+        videoElem.currentTime = curTime + dt;
+
+        evt.preventDefault();
+        return false;
+    }
 }
 
 document.onkeyup = function(evt)
@@ -528,12 +550,22 @@ document.onkeyup = function(evt)
         evt.preventDefault();
         return false;
     }
+    else if ([37, 38, 39, 40, 33, 34].indexOf(evt.keyCode) >= 0)
+    {
+        evt.preventDefault();
+        return false;
+    }
 }
 
 document.onkeypress = function(evt)
 {
     gotInteraction();
     if (evt.keyCode == 32)
+    {
+        evt.preventDefault();
+        return false;
+    }
+    else if ([37, 38, 39, 40, 33, 34].indexOf(evt.keyCode) >= 0)
     {
         evt.preventDefault();
         return false;
