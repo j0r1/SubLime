@@ -60,6 +60,8 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
     var m_fullScreen = false;
     var m_vexDiv = null;
 
+    var m_encodings = [ "default", "UTF-8", "UTF-16", "CP1250", "CP1251" ];
+
     var toTimeString = function(t)
     {
         if (t <= 0)
@@ -729,7 +731,7 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             throw "Filename does not end with '.srt'";
     }
 
-    var onSRTFileSelected = function(evt)
+    var onSRTFileSelected = function(evt, encoding)
     {
         vex.close(m_generalOpenDlg.data().vex.id);
         m_generalOpenDlg = null;
@@ -766,7 +768,8 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
                 try { msg = "" + reader.error.message; } catch(e) { }
                 vex.dialog.alert("Error opening file:<br>" + textToHTML(msg));
             }
-            reader.readAsText(file);
+
+            reader.readAsText(file, encoding);
         }
         catch(err)
         {
@@ -788,7 +791,10 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             contentCSS: { width: "60%" },
             message: [ '<h2>Load SRT subtitle file</h2>',
                 '<ul>',
-                '<li>Load a local SRT file: <input id="sublimeloadfile" type="file"></li>',
+                '<li>Load a local SRT file with <input type="text" name="encoding" id="encoding" list="encodinglist" placeholder="default" size="10" value="default"> encoding:',
+                '    <input id="sublimeloadfile" type="file">',
+                '    <datalist id="encodinglist"></datalist>',
+                '</li>',
                 '<li id="sublimeloadcachedsrtlistitem">Load last used SRT file from cache: <button id="sublimeloadcachedsrt">Load</button> <span id="sublimeloadcachedsrtfilename"></span></li>',
                 '<li>Clear loaded subtitles: <button id="sublimeclearsubsbutton">Clear</button></li>',
                 '</ul>'
@@ -797,7 +803,19 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             afterOpen: function()
             {
                 var elem = document.getElementById("sublimeloadfile");
-                elem.onchange = onSRTFileSelected;
+
+                elem.onchange = function(evt) 
+                { 
+                    var $ = jQuery_2_1_0_for_vex;
+                    var encoding = $("#encoding").val();
+
+                    if (encoding.length == 0)
+                        encoding = undefined;
+                    else if ($.trim(encoding) == "default")
+                        encoding = undefined;
+
+                    onSRTFileSelected(evt, encoding);
+                }
 
                 elem = document.getElementById("sublimeloadcachedsrt");
                 elem.onclick = function()
@@ -845,6 +863,15 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
                 {
                     console.log(e);
                     $("#sublimeloadcachedsrtlistitem").hide();
+                }
+
+                var $ = jQuery_2_1_0_for_vex;
+                elem = $("#encodinglist");
+                for (var i = 0 ; i < m_encodings.length ; i++)
+                {
+                    var opt = $("<option>");
+                    opt.text(m_encodings[i]);
+                    opt.appendTo(elem);
                 }
             }
         });
