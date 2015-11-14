@@ -802,6 +802,7 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             buttons: [ vex.dialog.buttons.NO ],
             afterOpen: function()
             {
+                var $ = jQuery_2_1_0_for_vex;
                 var elem = document.getElementById("sublimeloadfile");
 
                 elem.onchange = function(evt) 
@@ -865,7 +866,6 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
                     $("#sublimeloadcachedsrtlistitem").hide();
                 }
 
-                var $ = jQuery_2_1_0_for_vex;
                 elem = $("#encodinglist");
                 for (var i = 0 ; i < m_encodings.length ; i++)
                 {
