@@ -86,7 +86,7 @@ window as large as possible (e.g. by pressing F11 or going to
 
 The source code
 ---------------
-The entire source code can be [found on Bitbucket](https://bitbucket.org/jliesenborgs/sublime).
+The entire source code can be [found on GitHub](https://github.com/j0r1/SubLime).
 
 Used software
 -------------
