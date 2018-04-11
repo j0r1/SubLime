@@ -49,8 +49,8 @@ function endsWith(s, end, caseInsensitive)
 
 function validateFileName(name)
 {
-    if (!endsWith(name, ".mp4", true) && !endsWith(name, ".webm") && !endsWith(name, ".m4v"))
-        throw "Filename does not end with '.mp4', '.m4v' or '.webm'";
+    //if (!endsWith(name, ".mp4", true) && !endsWith(name, ".webm") && !endsWith(name, ".m4v"))
+    //    throw "Filename does not end with '.mp4', '.m4v' or '.webm'";
 }
 
 function gotoLastKnownVideoPosition(name)
