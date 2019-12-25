@@ -5,7 +5,7 @@
   "description": "Show subroutines synced to HTML5 video",
   "version": "1.9.1",
 
-  "homepage_url": "https://sub-lime.appspot.com/",
+  "homepage_url": "https://j0r1.github.io/SubLime/",
   "permissions": [ "activeTab" ],
   "options_page": "options.html",
   "background": {

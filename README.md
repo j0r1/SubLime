@@ -10,7 +10,7 @@ file over an HTML5 video element in your browser. It is available as a
 It is known to work with [YouTube](http://www.youtube.com/), [Netflix](http://www.netflix.com)
 and [vimeo](https://vimeo.com/) videos (if HTML5 video is used).
 
-See https://sub-lime.appspot.com to get the tool and for more information.
+See https://j0r1.github.io/SubLime/ to get the tool and for more information.
 
 License and disclaimer
 ----------------------

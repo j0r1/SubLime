@@ -5,15 +5,15 @@ cat << EOF
 <html>
     <head>
         <link rel="shortcut icon" href="/favicon.png" type="image/png">
-	<meta property="og:image" content="https://sub-lime.appspot.com/icon-128x128.png" />
-	<meta property="og:url" content="https://sub-lime.appspot.com/" />
+	<meta property="og:image" content="https://j0r1.github.io/SubLime/icon-128x128.png" />
+	<meta property="og:url" content="https://j0r1.github.io/SubLime/" />
 	<meta property="og:description" content="Show subroutines synced to HTML5 video." />
 	<meta property="og:site_name" content="SubLime" />
 	<meta property="og:title" content="SubLime" />
 	
 	<meta itemprop="name" content="SubLime">
 	<meta itemprop="description" content="Show subroutines synced to HTML5 video.">
-	<meta itemprop="image" content="https://sub-lime.appspot.com/icon-128x128.png">
+	<meta itemprop="image" content="https://j0r1.github.io/SubLime/icon-128x128.png">
 
         <script id="sublimebookmarklet">
 
@@ -52,12 +52,24 @@ cat << EOF
             }
         </script>
         <script>
+	    function getOrigin()
+	    {
+		var orig = window.location.origin;
+		var path = window.location.pathname;
+		var startIdx = path.length-1;
+
+		while (path[startIdx] != '/')
+		    startIdx--;
+
+		return orig + path.substr(0, startIdx)
+	    }
+
             function run()
             {
                 var elem = document.getElementById("sublimebookmarklet");
                 var data = elem.innerHTML;
 
-		data = data.replace(/ORIGIN/g, window.location.origin);
+		data = data.replace(/ORIGIN/g, getOrigin());
                 data = "void((function() { " + data + "\nsubOverlayBookmarklet(); })())";
 
                 elem = document.getElementById("bookmarkletlink");

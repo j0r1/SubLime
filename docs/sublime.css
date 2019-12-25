@@ -1,0 +1,42 @@
+.sublimedivbase {
+	position: absolute;
+	z-index: 1109;
+	pointer-events: none;
+        text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+	font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        color: white;
+}
+
+.sublimemessage {
+	font-size: 20px;
+	top: 10px;
+	right: 10px;
+}
+
+.sublimesubtitle {
+	font-size: 28px;
+	bottom: 20px;
+	left: 0px;
+	right: 0px;
+	width: 95%;
+	margin: auto;
+	text-align: center;
+}
+
+.sublimesubtitle b {
+	font-weight: bolder;
+}
+
+.sublimedlgbaseclass
+{
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.sublimedlgbaseclass ul
+{
+    list-style-type: circle;
+    list-style-position: inside;
+}
+

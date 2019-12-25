@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ./createindexhtml.sh >index.html
-mkdir ../appengine/page
 
 for i in index.html \
 		icon.png \
@@ -25,5 +24,5 @@ for i in index.html \
 
 
 do
-	cp $i ../appengine/page/
+	cp $i ../docs/
 done
