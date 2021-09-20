@@ -3,7 +3,7 @@
 
   "name": "SubLime",
   "description": "Show subroutines synced to HTML5 video",
-  "version": "1.9.1",
+  "version": "1.9.2",
 
   "homepage_url": "https://j0r1.github.io/SubLime/",
   "permissions": [ "activeTab" ],
