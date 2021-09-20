@@ -914,6 +914,7 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             var preferences = JSON.parse(localStorage[m_localStoragePrefKey]);
             try { $(m_subtitleDiv).css("font-size", "" + preferences.subSize + "px"); } catch(e) { }
             try { $(m_messageDiv).css("font-size", "" + preferences.msgSize + "px"); } catch(e) { }
+            try { $(m_subtitleDiv).css("bottom", "" + preferences.bottomDist + "px"); } catch(e) { }
             try { $(m_subtitleDiv).css("color", preferences.textCol); } catch(e) { }
             try { $(m_messageDiv).css("color", preferences.textCol); } catch(e) { }
             try { m_keyOpenFile = preferences.keyinfo["open"]; } catch(e) { }
@@ -946,6 +947,7 @@ var SubLimeSubtitles = function(allowGain, mayOpenDialog)
             subSize: parseInt($(m_subtitleDiv).css("font-size")),
             msgSize: parseInt($(m_messageDiv).css("font-size")),
             textCol: rgbToHex(getComputedStyle(m_subtitleDiv).color),
+            bottomDist: parseInt($(m_subtitleDiv).css("bottom")),
             keyinfo:
             {
                 "open": m_keyOpenFile,
